@@ -518,6 +518,32 @@ static void launchbar_update_after_taskbar_class_removed(LaunchTaskBarPlugin *lt
 #endif
 }
 
+static void fix_pixbuf_alpha (GdkPixbuf *pb)
+{
+    guchar *pix = gdk_pixbuf_get_pixels (pb);
+
+    int x, y, r, g, b, a;
+    for (y = 0; y < gdk_pixbuf_get_height (pb); y++)
+    {
+        for (x = 0; x < gdk_pixbuf_get_width (pb); x++)
+        {
+            r = *pix++;
+            g = *pix++;
+            b = *pix++;
+            a = *pix++;
+
+            if (a > 0 && a < 255)
+            {
+                pix -= 4;
+                *pix++ = ((r * a / 255) + (255 - a));
+                *pix++ = ((g * a / 255) + (255 - a));
+                *pix++ = ((b * a / 255) + (255 - a));
+                pix++;
+            }
+        }
+    }
+}
+
 /* Build the graphic elements for a launchtaskbar button.  The desktop_id field is already established. */
 /* NOTE: this func consumes reference on fi */
 static LaunchButton *launchbutton_for_file_info(LaunchTaskBarPlugin * lb, FmFileInfo * fi)
@@ -553,6 +579,10 @@ static LaunchButton *launchbutton_for_file_info(LaunchTaskBarPlugin * lb, FmFile
     GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
 
     GtkWidget * image = _gtk_image_new_for_icon (fm_file_info_get_icon (fi), lb->icon_size - ICON_BUTTON_TRIM);
+
+    GdkPixbuf *pb = gtk_image_get_pixbuf (GTK_IMAGE(image));
+    fix_pixbuf_alpha (pb);
+
     gtk_misc_set_padding (GTK_MISC (image), 0, 0);
     gtk_misc_set_alignment (GTK_MISC (image), 0.5, 0.5);
 
@@ -2308,6 +2338,7 @@ static GdkPixbuf * get_wm_icon(Window task_win, guint required_width, guint requ
     else
     {
         GdkPixbuf * ret = gdk_pixbuf_scale_simple(pixmap, required_width, required_height, GDK_INTERP_TILES);
+        fix_pixbuf_alpha (ret);
         g_object_unref(pixmap);
         *current_source = possible_source;
         return ret;
