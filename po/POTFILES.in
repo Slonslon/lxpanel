@@ -58,3 +58,7 @@ plugins/dhcpcd-gtk/menu.c
 plugins/dhcpcd-gtk/prefs.c
 plugins/dhcpcd-gtk/wpa.c
 
+plugins/ejecter/ejecter.c
+
+plugins/bluetooth/bluetooth.c
+

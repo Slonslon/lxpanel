@@ -1236,8 +1236,7 @@ gtk_weather_create_preferences_dialog(GtkWidget * widget)
   priv->preferences_data.dialog = gtk_dialog_new_with_buttons(_("Weather Preferences"),
                                                               NULL,
                                                               GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                                              GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-                                                              GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+                                                              GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
                                                               NULL);
 
   /* Set dialog window icon */

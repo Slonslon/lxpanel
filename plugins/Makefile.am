@@ -65,7 +65,8 @@ EXTRA_LTLIBRARIES = \
 	weather.la \
 	xkb.la \
 	dhcpcdui.la \
-	ejecter.la
+	ejecter.la \
+	bluetooth.la
 
 pkglibdir = $(libdir)/lxpanel/plugins
 
@@ -198,6 +199,12 @@ ejecter_la_SOURCES = \
 	ejecter/ejecter.c
 ejecter_la_CFLAGS = -DPACKAGE_DATA_DIR=\""$(datadir)/lxpanel"\" -I$(srcdir)/ejecter -I/usr/local/include/gnome-disk-utility
 ejecter_la_LDFLAGS = -module @LXPANEL_MODULE@
+
+# bluetooth
+bluetooth_la_SOURCES = \
+	bluetooth/bluetooth.c
+bluetooth_la_CFLAGS = -DPACKAGE_DATA_DIR=\""$(datadir)/lxpanel"\" -I$(srcdir)/bluetooth
+bluetooth_la_LDFLAGS = -module @LXPANEL_MODULE@
 
 flagsdir=$(datadir)/lxpanel/images/xkb-flags
 flags_DATA= \

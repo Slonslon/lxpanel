@@ -181,6 +181,7 @@ static GtkWidget * dirmenu_create_menu(DirMenuPlugin * dm, const char * path, gb
     {
         /* Create and initialize menu item. */
         GtkWidget * item = gtk_image_menu_item_new_with_label(dir_cursor->directory_name);
+        gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (item), TRUE);
         gtk_image_menu_item_set_image(
             GTK_IMAGE_MENU_ITEM(item),
             gtk_image_new_from_stock(GTK_STOCK_DIRECTORY, GTK_ICON_SIZE_MENU));

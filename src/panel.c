@@ -533,6 +533,8 @@ static void process_client_msg ( XClientMessageEvent* ev )
             }
             break;
         case LXPANEL_CMD_ALSACONF:
+        case LXPANEL_CMD_ALSASTART:
+        case LXPANEL_CMD_ALSASTOP:
             {
                 GSList* l;
                 for( l = all_panels; l; l = l->next )
@@ -545,8 +547,15 @@ static void process_client_msg ( XClientMessageEvent* ev )
                     {
                         GtkWidget *w = (GtkWidget*)pl->data;
                         const LXPanelPluginInit *init = PLUGIN_CLASS(pl->data);
-                        if (!strcmp (init->name, "Volume Control (ALSA)") && init->reconfigure)
-                            init->reconfigure(p, w);
+                        if (!strcmp (init->name, "Volume Control (ALSA)"))
+                        {
+                            if (cmd == LXPANEL_CMD_ALSACONF && init->reconfigure)
+                                init->reconfigure(p, w);
+                            if (cmd == LXPANEL_CMD_ALSASTART && init->control)
+                                init->control(w, "Start");
+                            if (cmd == LXPANEL_CMD_ALSASTOP && init->control)
+                                init->control(w, "Stop");
+                        }
                     }
                     g_list_free(plugins);
                 }

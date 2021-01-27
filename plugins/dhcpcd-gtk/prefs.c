@@ -1,6 +1,6 @@
 /*
  * dhcpcd-gtk
- * Copyright 2009-2014 Roy Marples <roy@marples.name>
+ * Copyright 2009-2015 Roy Marples <roy@marples.name>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ config_err_dialog(DHCPCD_CONNECTION *con, bool writing, const char *txt)
     GtkWidget *edialog;
     char *t;
 
-    t = g_strconcat(_(writing ? "Error saving" : "Error reading"), " ",
+    t = g_strconcat(_(writing ? _("Error saving") : _("Error reading")), " ",
         dhcpcd_cffile(con), "\n\n", txt, NULL);
     edialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL,
         GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", t);
@@ -65,7 +65,7 @@ show_config(DHCPCD_OPTION *conf, DHCPCDUIPlugin *dhcp)
         autocnf = false;
     else {
         if ((val = dhcpcd_config_get(conf, "inform")) == NULL &&
-            (dhcp->iface && dhcp->iface->flags & IFF_POINTOPOINT))
+            (dhcp->iface && dhcp->iface->ifflags & IFF_POINTOPOINT))
             autocnf = false;
         else
             autocnf = true;
@@ -130,7 +130,7 @@ make_config(DHCPCD_OPTION **conf, DHCPCDUIPlugin *dhcp)
 
     ret = true;
     a = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dhcp->autoconf));
-    if (dhcp->iface && dhcp->iface->flags & IFF_POINTOPOINT)
+    if (dhcp->iface && dhcp->iface->ifflags & IFF_POINTOPOINT)
         set_option(conf, true, "ip_address=", a ? NULL : ns, &ret);
     else {
         val = gtk_entry_get_text(GTK_ENTRY(dhcp->address));
@@ -335,7 +335,7 @@ names_on_change(_unused GtkWidget *widget, gpointer data)
             }
     }
     gtk_widget_set_sensitive(dhcp->address,
-        !dhcp->iface || (dhcp->iface->flags & IFF_POINTOPOINT) == 0);
+        !dhcp->iface || (dhcp->iface->ifflags & IFF_POINTOPOINT) == 0);
     if (dhcp->block && dhcp->name) {
         errno = 0;
         dhcp->config = dhcpcd_config_read(con, dhcp->block, dhcp->name);
@@ -484,7 +484,7 @@ static void
 prefs_close(_unused GObject *widget, gpointer data)
 {
     DHCPCDUIPlugin *dhcp = (DHCPCDUIPlugin *) data;
-    gtk_dialog_response (GTK_DIALOG(dhcp->dialog), GTK_RESPONSE_CLOSE);
+    if (dhcp->dialog) gtk_dialog_response (GTK_DIALOG(dhcp->dialog), GTK_RESPONSE_CLOSE);
     dhcp->dialog = NULL;
 }
 
@@ -522,7 +522,7 @@ prefs_show(DHCPCDUIPlugin *dhcp)
     //  return;
     //}
 
-    if (g_strcmp0(dhcpcd_status(dhcp->con), "down") == 0)
+    if (dhcpcd_status(dhcp->con, NULL) == DHC_DOWN)
         return NULL;
 
     dhcp->dialog = gtk_dialog_new();
@@ -541,7 +541,7 @@ prefs_show(DHCPCDUIPlugin *dhcp)
 
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_box_pack_start(GTK_BOX(dialog_vbox), hbox, false, false, 3);
-    w = gtk_label_new("Configure:");
+    w = gtk_label_new(_("Configure:"));
     gtk_box_pack_start(GTK_BOX(hbox), w, false, false, 3);
     store = gtk_list_store_new(2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
     pb = load_icon("network-wired");

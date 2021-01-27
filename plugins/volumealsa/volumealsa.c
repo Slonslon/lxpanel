@@ -16,9 +16,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _ISOC99_SOURCE /* lrint() */
+#define _GNU_SOURCE /* exp10() */
+
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <glib.h>
@@ -34,15 +38,29 @@
 
 #include "plugin.h"
 
-#define ICONS_VOLUME_HIGH   PACKAGE_DATA_DIR "/images/volume-high.png"
-#define ICONS_VOLUME_MEDIUM PACKAGE_DATA_DIR "/images/volume-medium.png"
-#define ICONS_VOLUME_LOW    PACKAGE_DATA_DIR "/images/volume-low.png"
-#define ICONS_MUTE          PACKAGE_DATA_DIR "/images/mute.png"
 #define ICONS_TICK          PACKAGE_DATA_DIR "/images/dialog-ok-apply.png"
 
 #define ICON_BUTTON_TRIM 4
 
-#define CUSTOM_MENU
+#define DEBUG_ON
+#ifdef DEBUG_ON
+#define DEBUG(fmt,args...) g_message("va: " fmt,##args)
+#else
+#define DEBUG
+#endif
+
+#ifdef __UCLIBC__
+/* 10^x = 10^(log e^x) = (e^x)^log10 = e^(x * log 10) */
+#define exp10(x) (exp((x) * log(10)))
+#endif /* __UCLIBC__ */
+
+#define MAX_LINEAR_DB_SCALE	24
+
+typedef enum {
+    DEV_HID,
+    DEV_AUDIO_SINK,
+    DEV_OTHER
+} DEVICE_TYPE;
 
 typedef struct {
 
@@ -61,10 +79,10 @@ typedef struct {
 
     /* ALSA interface. */
     snd_mixer_t * mixer;            /* The mixer */
-    snd_mixer_selem_id_t * sid;         /* The element ID */
     snd_mixer_elem_t * master_element;      /* The Master element */
     guint mixer_evt_idle;           /* Timer to handle restarting poll */
     guint restart_idle;
+    gboolean stopped;
 
     /* unloading and error handling */
     GIOChannel **channels;                      /* Channels that we listen to */
@@ -73,11 +91,16 @@ typedef struct {
 
     /* Icons */
     const char* icon;
-    const char* icon_panel;
-    const char* icon_fallback;
 
+    GDBusObjectManager *objmanager;         /* BlueZ object manager */
+    char *bt_conname;                       /* BlueZ name of device - just used during connection */
+    GDBusConnection *con;                   /* DBus P2P connection to PulseAudio server */
+    guint sub_id;                           /* subscription ID for signal notifications on PA server */
+    int sink;                               /* sink number of current Bluetooth device - -1 if no device*/
+    GtkWidget *conn_dialog, *conn_label, *conn_ok;
 } VolumeALSAPlugin;
 
+static void send_message (void);
 static gboolean asound_restart(gpointer vol_gpointer);
 static gboolean asound_initialize(VolumeALSAPlugin * vol);
 static void asound_deinitialize(VolumeALSAPlugin * vol);
@@ -86,12 +109,788 @@ static void volumealsa_destructor(gpointer user_data);
 static void volumealsa_build_popup_window(GtkWidget *p);
 static guint xfce_mixer_is_default_card (GstElement *card);
 static const gchar *xfce_mixer_get_card_display_name (GstElement *card);
+static const gchar *xfce_mixer_get_card_id (GstElement *card);
 static gboolean xfce_mixer_is_bcm_device (GstElement *card);
-static const gchar * xfce_mixer_get_bcm_device_id (void);
+static gboolean xfce_mixer_get_bcm_device_id (gchar *id);
 static GtkWidget *volumealsa_configure(LXPanel *panel, GtkWidget *p);
+static gboolean _xfce_mixer_filter_mixer (GstMixer *mixer, gpointer user_data);
+static void _xfce_mixer_destroy_mixer (GstMixer *mixer);
 
+
+static void cb_name_owned (GDBusConnection *connection, const gchar *name, const gchar *owner, gpointer user_data);
+static void cb_name_unowned (GDBusConnection *connection, const gchar *name, gpointer user_data);
+static guint32 get_bt_vol (VolumeALSAPlugin *vol);
+static gboolean get_bt_mute (VolumeALSAPlugin *vol);
+static void set_bt_vol (VolumeALSAPlugin *vol, guint32 volume);
+static void set_bt_mute (VolumeALSAPlugin *vol, gboolean mute);
+static gboolean get_bz_name_of_pa_sink (VolumeALSAPlugin *vol, char **dev);
+static int set_pa_sink_from_bz_name (VolumeALSAPlugin *vol, const char *dev);
+static void start_pulseaudio (VolumeALSAPlugin *vol, gboolean always);
+static void stop_pulseaudio (VolumeALSAPlugin *vol);
+static gboolean check_pulseaudio (void);
+static void connect_device (VolumeALSAPlugin *vol);
+static void cb_connected (GObject *source, GAsyncResult *res, gpointer user_data);
+static void cb_trusted (GObject *source, GAsyncResult *res, gpointer user_data);
+static void disconnect_device (VolumeALSAPlugin *vol);
+static void cb_disconnected (GObject *source, GAsyncResult *res, gpointer user_data);
+static void cb_signal (GDBusConnection *connection, const gchar *sender_name, const gchar *object_path, const gchar *interface_name,
+    const gchar *signal_name, GVariant *parameters, gpointer user_data);
+static void set_bt_card_event (GtkWidget * widget, VolumeALSAPlugin * vol);
+static void show_connect_dialog (VolumeALSAPlugin *vol, gboolean failed, const gchar *param);
+static void handle_close_connect_dialog (GtkButton *button, gpointer user_data);
+static gint delete_conn (GtkWidget *widget, GdkEvent *event, gpointer user_data);
+static void configure_pa (void);
+static DEVICE_TYPE check_uuids (VolumeALSAPlugin *vol, const gchar *path);
+
+static long lrint_dir(double x, int dir);
+static inline gboolean use_linear_dB_scale(long dBmin, long dBmax);
+static double get_normalized_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t channel);
+static int set_normalized_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t channel, double volume, int dir);
+
+/* Bluetooth via PulseAudio */
+
+static int get_status (char *cmd)
+{
+    FILE *fp = popen (cmd, "r");
+    char buf[64];
+    int res;
+
+    if (fp && fgets (buf, sizeof (buf) - 1, fp) != NULL)
+    {
+        pclose (fp);
+        sscanf (buf, "%d", &res);
+        return res;
+    }
+    if (fp) pclose (fp);
+    return 0;
+}
+
+static void cb_name_owned (GDBusConnection *connection, const gchar *name, const gchar *owner, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    char *config_file;
+    FILE *fp;
+    DEBUG ("Name %s owned on DBus", name);
+
+    /* BlueZ exists - get an object manager for it */
+    GError *error = NULL;
+    vol->objmanager = g_dbus_object_manager_client_new_for_bus_sync (G_BUS_TYPE_SYSTEM, 0, "org.bluez", "/", NULL, NULL, NULL, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Error getting object manager - %s", error->message);
+        vol->objmanager = NULL;
+        g_error_free (error);
+    }
+
+    /* Check whether a Bluetooth audio device is the current default - start PulseAudio if it is */
+    config_file = g_build_filename (g_get_home_dir (), ".config", "bt", NULL);
+    if (fp = fopen (config_file, "rb"))
+    {
+        start_pulseaudio (vol, TRUE);
+        if (vol->con)
+        {
+            /* Reconnect the current Bluetooth audio device */
+            vol->bt_conname = g_malloc0 (128);
+            fgets (vol->bt_conname, 127, fp);
+            *(vol->bt_conname + strlen (vol->bt_conname) - 1) = 0;
+
+            DEBUG ("Connecting to %s...", vol->bt_conname);
+            connect_device (vol);
+        }
+        else
+        {
+            DEBUG ("No connection to PulseAudio");
+            stop_pulseaudio (vol);
+        }
+
+        fclose (fp);
+    }
+    else stop_pulseaudio (vol);
+}
+
+static void cb_name_unowned (GDBusConnection *connection, const gchar *name, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    DEBUG ("Name %s unowned on DBus", name);
+
+    if (vol->objmanager) g_object_unref (vol->objmanager);
+    vol->objmanager = NULL;
+
+    // kill PulseAudio - it's probably dead anyway...
+    stop_pulseaudio (vol);
+}
+
+static guint32 get_bt_vol (VolumeALSAPlugin *vol)
+{
+    GError *error = NULL;
+    char buffer[64];
+    guint32 res;
+    sprintf (buffer, "/org/pulseaudio/core1/sink%d", vol->sink);
+    GVariant *var = g_dbus_connection_call_sync (vol->con, NULL, buffer, "org.freedesktop.DBus.Properties", "Get", g_variant_new ("(ss)", "org.PulseAudio.Core1.Device", "Volume"), NULL, 0, -1, NULL, &error);
+    if (error || !var)
+    {
+        DEBUG ("Cannot get volume - %s", error ? error->message : "no variant");
+        if (var) g_variant_unref (var);
+        if (error) g_error_free (error);
+        return 0;
+    }
+    res = g_variant_get_uint32 (g_variant_get_child_value (g_variant_get_child_value (g_variant_get_child_value (var, 0), 0), 0));
+    g_variant_unref (var);
+    return res;
+}
+
+static gboolean get_bt_mute (VolumeALSAPlugin *vol)
+{
+    GError *error = NULL;
+    char buffer[64];
+    gboolean res;
+    sprintf (buffer, "/org/pulseaudio/core1/sink%d", vol->sink);
+    GVariant *var = g_dbus_connection_call_sync (vol->con, NULL, buffer, "org.freedesktop.DBus.Properties", "Get", g_variant_new ("(ss)", "org.PulseAudio.Core1.Device", "Mute"), NULL, 0, -1, NULL, &error);
+    if (error || !var)
+    {
+        DEBUG ("Cannot get mute - %s", error ? error->message : "no variant");
+        if (var) g_variant_unref (var);
+        if (error) g_error_free (error);
+        return FALSE;
+    }
+    res = g_variant_get_boolean (g_variant_get_child_value (g_variant_get_child_value (var, 0), 0));
+    g_variant_unref (var);
+    return res;
+}
+
+static void set_bt_vol (VolumeALSAPlugin *vol, guint32 volume)
+{
+    GError *error = NULL;
+    GVariantBuilder *builder;
+    GVariant *var, *res;
+    char buffer[64];
+
+    builder = g_variant_builder_new (G_VARIANT_TYPE ("au"));
+    g_variant_builder_add (builder, "u", volume);
+    var = g_variant_new ("(ssv)", "org.PulseAudio.Core1.Device", "Volume", g_variant_new ("au", builder));
+    g_variant_ref_sink (var);
+    sprintf (buffer, "/org/pulseaudio/core1/sink%d", vol->sink);
+    res = g_dbus_connection_call_sync (vol->con, NULL, buffer, "org.freedesktop.DBus.Properties", "Set", var, NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Cannot set volume - %s", error->message);
+        g_error_free (error);
+    }
+    g_variant_unref (res);
+    g_variant_unref (var);
+    g_variant_builder_unref (builder);
+}
+
+static void set_bt_mute (VolumeALSAPlugin *vol, gboolean mute)
+{
+    GError *error = NULL;
+    GVariant *var, *res;
+    char buffer[64];
+
+    var = g_variant_new ("(ssv)", "org.PulseAudio.Core1.Device", "Mute", g_variant_new ("b", mute));
+    g_variant_ref_sink (var);
+    sprintf (buffer, "/org/pulseaudio/core1/sink%d", vol->sink);
+    res = g_dbus_connection_call_sync (vol->con, NULL, buffer, "org.freedesktop.DBus.Properties", "Set", var, NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Cannot set mute - %s", error->message);
+        g_error_free (error);
+    }
+    g_variant_unref (res);
+    g_variant_unref (var);
+}
+
+static gboolean get_bz_name_of_pa_sink (VolumeALSAPlugin *vol, char **dev)
+{
+    GError *error;
+    GVariant *var1, *var2;
+    const gchar *key;
+
+    // query PulseAudio for the path of the default sink - returned in the format "/org/pulseaudio/core1/sinkn"
+    error = NULL;
+    var1 = g_dbus_connection_call_sync (vol->con, NULL, "/org/pulseaudio/core1", "org.freedesktop.DBus.Properties", "Get", g_variant_new ("(ss)", "org.PulseAudio.Core1", "FallbackSink"), NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Cannot get path for default device - %s", error->message);
+        if (var1) g_variant_unref (var1);
+        g_error_free (error);
+        return FALSE;
+    }
+    if (!var1)
+    {
+        DEBUG ("Default device not set");
+        return FALSE;
+    }
+
+    // query the device with that path for its name - returned in the format "bluez_sink.aa_bb_cc_dd_ee_ff"
+    key = g_variant_get_string (g_variant_get_child_value (g_variant_get_child_value (var1, 0), 0), NULL);
+    error = NULL;
+    var2 = g_dbus_connection_call_sync (vol->con, NULL, key, "org.freedesktop.DBus.Properties", "Get", g_variant_new ("(ss)", "org.PulseAudio.Core1.Device", "Name"), NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Cannot get name of default device - %s", error->message);
+        g_variant_unref (var1);
+        if (var2) g_variant_unref (var2);
+        g_error_free (error);
+        return FALSE;
+    }
+    if (!var2)
+    {
+        DEBUG ("Default device has null name");
+        g_variant_unref (var1);
+        return FALSE;
+    }
+    *dev = g_variant_dup_string (g_variant_get_child_value (g_variant_get_child_value (var2, 0), 0), NULL);
+    g_variant_unref (var1);
+    g_variant_unref (var2);
+    return TRUE;
+}
+
+static int set_pa_sink_from_bz_name (VolumeALSAPlugin *vol, const char *dev)
+{
+    GError *error;
+    GVariant *var1, *var2, *res;
+    GVariantIter iter;
+    gchar *key;
+    const gchar *dev2;
+    int sink;
+
+    // get the list of PulseAudio sinks - returned as an array of paths in the format "/org/pulseaudio/core1/sinkn"
+    error = NULL;
+    var1 = g_dbus_connection_call_sync (vol->con, NULL, "/org/pulseaudio/core1", "org.freedesktop.DBus.Properties", "Get", g_variant_new ("(ss)", "org.PulseAudio.Core1", "Sinks"), NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Could not read sink list - %s", error->message);
+        if (var1) g_variant_unref (var1);
+        g_error_free (error);
+        return -1;
+    }
+    if (!var1)
+    {
+        DEBUG ("Sink list null");
+        return -1;
+    }
+
+    // iterate through the sink list
+    g_variant_iter_init (&iter, g_variant_get_child_value (g_variant_get_child_value (var1, 0), 0));
+    while (g_variant_iter_next (&iter, "o", &key, NULL))
+    {
+        // for each sink in the list, query the device with that path for its name - returned in the format "bluez_sink.aa_bb_cc_dd_ee_ff"
+        error = NULL;
+        var2 = g_dbus_connection_call_sync (vol->con, NULL, key, "org.freedesktop.DBus.Properties", "Get", g_variant_new ("(ss)", "org.PulseAudio.Core1.Device", "Name"), NULL, 0, -1, NULL, &error);
+        if (error)
+        {
+            DEBUG ("Cannot get name of device - %s", error->message);
+            g_variant_unref (var1);
+            if (var2) g_variant_unref (var2);
+            g_error_free (error);
+            return -1;
+        }
+        if (!var2)
+        {
+            DEBUG ("Default device has null name");
+            g_variant_unref (var1);
+            return -1;
+        }
+        dev2 = g_variant_get_string (g_variant_get_child_value (g_variant_get_child_value (var2, 0), 0), NULL);
+
+        // if the six octets at the end of the name match those supplied, set as the default sink
+        if (!g_strcmp0 (dev + 20, dev2 + 11))
+        {
+            if (sscanf (key, "/org/pulseaudio/core1/sink%d", &sink) != 1) return -1;
+
+            error = NULL;
+            res = g_dbus_connection_call_sync (vol->con, NULL, "/org/pulseaudio/core1", "org.freedesktop.DBus.Properties", "Set",
+                g_variant_new ("(ssv)", "org.PulseAudio.Core1", "FallbackSink", g_variant_new ("o", key)), NULL, 0, -1, NULL, &error);
+            if (error)
+            {
+                DEBUG ("Cannot set sink - %s", error->message);
+                g_error_free (error);
+            }
+            if (res) g_variant_unref (res);
+            return sink;
+        }
+    }
+    g_variant_unref (var1);
+    if (var2) g_variant_unref (var2);
+    return -1;
+}
+
+static void start_pulseaudio (VolumeALSAPlugin *vol, gboolean always)
+{
+    GDBusConnection *con;
+    GDBusProxy *prox;
+    GVariant *var;
+    GError *error;
+
+    DEBUG ("Starting PulseAudio");
+
+    // fall out if PA already started...
+    if (!always && check_pulseaudio ()) return;
+
+    vol->con = NULL;
+
+    // start the PulseAudio server if it isn't running
+    system ("pulseaudio -D --load=module-dbus-protocol");
+
+    // request the PulseAudio P2P address from the PulseAudio server
+    error = NULL;
+    con = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Bus connection error - %s", error->message);
+        g_error_free (error);
+        return;
+    }
+
+    error = NULL;
+    prox = g_dbus_proxy_new_sync (con, G_DBUS_PROXY_FLAGS_NONE, NULL, "org.PulseAudio1", "/org/pulseaudio/server_lookup1", "org.freedesktop.DBus.Properties", NULL, NULL);
+    if (error)
+    {
+        DEBUG ("Error requesting address - %s", error->message);
+        g_error_free (error);
+        return;
+    }
+    g_object_unref (con);
+
+    var = g_dbus_proxy_get_cached_property (prox, "Address");
+    if (!var)
+    {
+        DEBUG ("Null address");
+        return;
+    }
+    g_object_unref (prox);
+
+    // create a P2P connection to PulseAudio at the returned address
+    error = NULL;
+    vol->con = g_dbus_connection_new_for_address_sync (g_variant_get_string (var, NULL), G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT, NULL, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Connection error - %s", error->message);
+        vol->con = NULL;
+        g_error_free (error);
+        return;
+    }
+    g_variant_unref (var);
+
+    // request SinkRemoved signals from PulseAudio
+    error = NULL;
+    var = g_dbus_connection_call_sync (vol->con, NULL, "/org/pulseaudio/core1", "org.PulseAudio.Core1", "ListenForSignal", g_variant_new ("(sao)", "org.PulseAudio.Core1.SinkRemoved", NULL), NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Method error - %s", error->message);
+        g_error_free (error);
+    }
+    g_variant_unref (var);
+
+    // set up callback on SinkRemoved signal
+    error = NULL;
+    vol->sub_id = g_dbus_connection_signal_subscribe (vol->con, NULL, "org.PulseAudio.Core1", NULL, NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, cb_signal, vol, NULL);
+    if (error)
+    {
+        DEBUG ("Subscribe error - %s", error->message);
+        g_error_free (error);
+    }
+}
+
+static void stop_pulseaudio (VolumeALSAPlugin *vol)
+{
+    DEBUG ("Stopping PulseAudio");
+    if (!check_pulseaudio ()) return;
+    
+    if (vol->sub_id) g_dbus_connection_signal_unsubscribe (vol->con, vol->sub_id);
+    vol->sub_id = 0;
+    system ("pulseaudio --kill");
+    system ("rm ~/.config/bt");
+    g_object_unref (vol->con);
+    vol->con = NULL;
+    vol->sink = -1;
+}
+
+static gboolean check_pulseaudio (void)
+{
+    return get_status ("! pulseaudio --check ; echo $?");
+}
+
+static void connect_device (VolumeALSAPlugin *vol)
+{
+    GDBusInterface *interface = g_dbus_object_manager_get_interface (vol->objmanager, vol->bt_conname, "org.bluez.Device1");
+    if (interface)
+    {
+        // trust and connect
+        g_dbus_proxy_call (G_DBUS_PROXY (interface), "org.freedesktop.DBus.Properties.Set", g_variant_new ("(ssv)",
+            g_dbus_proxy_get_interface_name (G_DBUS_PROXY (interface)), "Trusted", g_variant_new_boolean (TRUE)), G_DBUS_CALL_FLAGS_NONE, -1, NULL, cb_trusted, vol);
+        g_dbus_proxy_call (G_DBUS_PROXY (interface), "Connect", NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, cb_connected, vol);
+        g_object_unref (interface);
+    }
+    else
+    {
+        DEBUG ("Couldn't get device interface from object manager");
+        stop_pulseaudio (vol);
+        if (vol->conn_dialog) show_connect_dialog (vol, TRUE, _("Could not get BlueZ interface"));
+    }
+}
+
+static void cb_connected (GObject *source, GAsyncResult *res, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    GError *error = NULL;
+    char buffer[256];
+    GtkWidget *dlg, *lbl, *btn;
+
+    GVariant *var = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), res, &error);
+    if (var) g_variant_unref (var);
+
+    if (error)
+    {
+        DEBUG ("Connect error %s", error->message);
+
+        // kill PulseAudio and fall back to an internal device
+        stop_pulseaudio (vol);
+
+        // update dialog to show a warning
+        if (vol->conn_dialog) show_connect_dialog (vol, TRUE, error->message);
+    }
+    else
+    {
+        DEBUG ("Connected OK");
+
+        // save the connection data to a file for use after reboot
+        sprintf (buffer, "echo %s > ~/.config/bt", vol->bt_conname);
+        system (buffer);
+
+        // update the globals with connection details
+        vol->sink = set_pa_sink_from_bz_name (vol, vol->bt_conname);
+
+        // close the connection dialog
+        handle_close_connect_dialog (NULL, vol);
+    }
+
+    // delete the connection information
+    g_free (vol->bt_conname);
+    vol->bt_conname = NULL;
+
+    // update the display whether we succeeded or not, as a failure will have caused a fallback to ALSA
+    volumealsa_update_display (vol);
+    gtk_menu_popdown (GTK_MENU(vol->menu_popup));
+    send_message ();
+}
+
+static void cb_trusted (GObject *source, GAsyncResult *res, gpointer user_data)
+{
+    GError *error = NULL;
+    GVariant *var = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), res, &error);
+    if (var) g_variant_unref (var);
+
+    if (error)
+    {
+        DEBUG ("Trusting error %s", error->message);
+        g_error_free (error);
+    }
+    else DEBUG ("Trusted OK");
+}
+
+static void disconnect_device (VolumeALSAPlugin *vol)
+{
+    // get the name of the device with the current sink number
+    GError *error = NULL;
+    GVariant *var;
+    char buffer[64];
+
+    sprintf (buffer, "/org/pulseaudio/core1/sink%d", vol->sink);
+    vol->sink = -1;
+
+    var = g_dbus_connection_call_sync (vol->con, NULL, buffer, "org.freedesktop.DBus.Properties", "Get",
+        g_variant_new ("(ss)", "org.PulseAudio.Core1.Device", "Name"), NULL, 0, -1, NULL, &error);
+    if (error)
+    {
+        DEBUG ("Could not read device name to disconnect - %s", error->message);
+        if (var) g_variant_unref (var);
+        g_error_free (error);
+    }
+    else if (!var)
+    {
+        DEBUG ("Device name to disconnect null");
+    }
+    else
+    {
+        DEBUG ("Device to disconnect = %s", g_variant_print (var, TRUE));
+        // convert into a BlueZ device path
+        const gchar *res = g_variant_get_string (g_variant_get_child_value (g_variant_get_child_value (var, 0), 0), NULL);
+        sprintf (buffer, "/org/bluez/hci0/dev_%s", res + 11);
+
+        // call the disconnect method on BlueZ
+        GDBusInterface *interface = g_dbus_object_manager_get_interface (vol->objmanager, buffer, "org.bluez.Device1");
+        if (interface)
+        {
+            DEBUG ("Disconnecting...");
+            g_dbus_proxy_call (G_DBUS_PROXY (interface), "Disconnect", NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, cb_disconnected, vol);
+            g_variant_unref (var);
+            g_object_unref (interface);
+            return;
+        }
+        g_variant_unref (var);
+    }
+
+    // if no connection found, just make the new connection
+    DEBUG ("Nothing to disconnect - connecting to %s...", vol->bt_conname);
+    connect_device (vol);
+}
+
+static void cb_disconnected (GObject *source, GAsyncResult *res, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    GError *error = NULL;
+    GVariant *var = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), res, &error);
+    if (var) g_variant_unref (var);
+
+    if (error)
+    {
+        DEBUG ("Disconnect error %s", error->message);
+        g_error_free (error);
+    }
+    else DEBUG ("Disconnected OK");
+
+    // call BlueZ over DBus to connect to the device
+    DEBUG ("Connecting to %s...", vol->bt_conname);
+    connect_device (vol);
+}
+
+static void cb_signal (GDBusConnection *connection, const gchar *sender_name, const gchar *object_path, const gchar *interface_name,
+    const gchar *signal_name, GVariant *parameters, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    DEBUG ("Signal : %s %s %s %s %s", sender_name, object_path, interface_name, signal_name, g_variant_print (parameters, TRUE));
+    if (!g_strcmp0 (signal_name, "SinkRemoved"))
+    {
+        int sink;
+        const char *sinkname = g_variant_get_string (g_variant_get_child_value (parameters, 0), NULL);
+        if (sscanf (sinkname, "/org/pulseaudio/core1/sink%d", &sink) == 1 && sink == vol->sink)
+        {
+            DEBUG ("Sink in use removed");
+            stop_pulseaudio (vol);
+            volumealsa_update_display (vol);
+        }
+    }
+}
+
+static void set_bt_card_event (GtkWidget * widget, VolumeALSAPlugin * vol)
+{
+    start_pulseaudio (vol, FALSE);
+
+    // show the connection dialog
+    show_connect_dialog (vol, FALSE, gtk_menu_item_get_label (GTK_MENU_ITEM (widget)));
+
+    if (vol->con)
+    {
+        // store the name of the BlueZ device to connect to for use in the callback
+        vol->bt_conname = g_malloc0 (strlen (widget->name) + 1);
+        strcpy (vol->bt_conname, widget->name);
+
+        if (vol->sink != -1)
+        {
+            // already connected to a Bluetooth device - disconnect it
+            DEBUG ("Disconnecting existing Bluetooth audio device");
+            disconnect_device (vol);
+        }
+        else
+        {
+            // call BlueZ over DBus to connect to the device
+            DEBUG ("Connecting to %s...", vol->bt_conname);
+            connect_device (vol);
+        }
+    }
+    else
+    {
+        DEBUG ("No connection to PulseAudio");
+        stop_pulseaudio (vol);
+        if (vol->conn_dialog) show_connect_dialog (vol, TRUE, _("Could not connect to PulseAudio"));
+    }
+}
+
+static void show_connect_dialog (VolumeALSAPlugin *vol, gboolean failed, const gchar *param)
+{
+    char buffer[256], path[128];
+
+    if (!failed)
+    {
+        vol->conn_dialog = gtk_dialog_new_with_buttons (_("Connecting Audio Device"), NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, NULL);
+        sprintf (path, "%s/images/preferences-system-bluetooth.png", PACKAGE_DATA_DIR);
+        gtk_window_set_icon (GTK_WINDOW (vol->conn_dialog), gdk_pixbuf_new_from_file (path, NULL));
+        gtk_window_set_position (GTK_WINDOW (vol->conn_dialog), GTK_WIN_POS_CENTER);
+        gtk_container_set_border_width (GTK_CONTAINER (vol->conn_dialog), 10);
+        sprintf (buffer, _("Connecting to Bluetooth audio device '%s'..."), param);
+        vol->conn_label = gtk_label_new (buffer);
+        gtk_label_set_line_wrap (GTK_LABEL (vol->conn_label), TRUE);
+        gtk_label_set_justify (GTK_LABEL (vol->conn_label), GTK_JUSTIFY_LEFT);
+        gtk_misc_set_alignment (GTK_MISC (vol->conn_label), 0.0, 0.0);
+        gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (vol->conn_dialog))), vol->conn_label, TRUE, TRUE, 0);
+        g_signal_connect (GTK_OBJECT (vol->conn_dialog), "delete_event", G_CALLBACK (delete_conn), vol);
+        gtk_widget_show_all (vol->conn_dialog);
+    }
+    else
+    {
+        sprintf (buffer, _("Failed to connect to device - %s. Try to connect again."), param);
+        gtk_label_set_text (GTK_LABEL (vol->conn_label), buffer);
+        vol->conn_ok = gtk_dialog_add_button (GTK_DIALOG (vol->conn_dialog), _("_OK"), 1);
+        g_signal_connect (vol->conn_ok, "clicked", G_CALLBACK (handle_close_connect_dialog), vol);
+        gtk_widget_show (vol->conn_ok);
+    }
+}
+
+static void handle_close_connect_dialog (GtkButton *button, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    if (vol->conn_dialog)
+    {
+        gtk_widget_destroy (vol->conn_dialog);
+        vol->conn_dialog = NULL;
+    }
+}
+
+static gint delete_conn (GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+    VolumeALSAPlugin *vol = (VolumeALSAPlugin *) user_data;
+    if (vol->conn_dialog)
+    {
+        gtk_widget_destroy (vol->conn_dialog);
+        vol->conn_dialog = NULL;
+    }
+    return TRUE;
+}
+
+static void configure_pa (void)
+{
+    // check the local configuration file
+    FILE *fp;
+    char *config_file;
+    config_file = g_build_filename (g_get_home_dir (), ".config", "pulse", "client.conf", NULL);
+    if (fp = fopen (config_file, "rb"))
+    {
+        fclose (fp);
+
+        // check and update relevant strings in file
+        if (get_status ("! grep -E -q \"autospawn\" ~/.config/pulse/client.conf ; echo $?"))
+        {
+            system ("sed -i 's/.*autospawn.*/autospawn = no/g' ~/.config/pulse/client.conf");
+        }
+        else system ("echo \"autospawn = no\n\" >> ~/.config/pulse/client.conf");
+        if (get_status ("! grep -E -q \"daemon-binary\" ~/.config/pulse/client.conf ; echo $?"))
+        {
+            system ("sed -i 's|.*daemon-binary.*|daemon-binary = /bin/true|g' ~/.config/pulse/client.conf");
+        }
+        else system ("echo \"daemon-binary = /bin/true\n\" >> ~/.config/pulse/client.conf");
+    }
+    else
+    {
+        // create file with default contents
+        system ("echo \"autospawn = no\ndaemon-binary = /bin/true\n\" > ~/.config/pulse/client.conf");
+    }
+    g_free (config_file);
+}
+
+static DEVICE_TYPE check_uuids (VolumeALSAPlugin *vol, const gchar *path)
+{
+    GDBusInterface *interface = g_dbus_object_manager_get_interface (vol->objmanager, path, "org.bluez.Device1");
+    GVariant *elem, *var = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (interface), "UUIDs");
+    GVariantIter iter;
+    g_variant_iter_init (&iter, var);
+    while (elem = g_variant_iter_next_value (&iter))
+    {
+        const char *uuid = g_variant_get_string (elem, NULL);
+        if (!strncasecmp (uuid, "00001124", 8)) return DEV_HID;
+        if (!strncasecmp (uuid, "0000110B", 8)) return DEV_AUDIO_SINK;
+        g_variant_unref (elem);
+    }
+    g_variant_unref (var);
+    g_object_unref (interface);
+    return DEV_OTHER;
+}
 
 /*** ALSA ***/
+
+static long lrint_dir(double x, int dir)
+{
+	if (dir > 0)
+		return lrint(ceil(x));
+	else if (dir < 0)
+		return lrint(floor(x));
+	else
+		return lrint(x);
+}
+
+static inline gboolean use_linear_dB_scale(long dBmin, long dBmax)
+{
+	return dBmax - dBmin <= MAX_LINEAR_DB_SCALE * 100;
+}
+
+static double get_normalized_volume(snd_mixer_elem_t *elem,
+				    snd_mixer_selem_channel_id_t channel)
+{
+	long min, max, value;
+	double normalized, min_norm;
+	int err;
+
+	err = snd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+	if (err < 0 || min >= max) {
+		err = snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+		if (err < 0 || min == max)
+			return 0;
+
+		err = snd_mixer_selem_get_playback_volume(elem, channel, &value);
+		if (err < 0)
+			return 0;
+
+		return (value - min) / (double)(max - min);
+	}
+
+	err = snd_mixer_selem_get_playback_dB(elem, channel, &value);
+	if (err < 0)
+		return 0;
+
+	if (use_linear_dB_scale(min, max))
+		return (value - min) / (double)(max - min);
+
+	normalized = exp10((value - max) / 6000.0);
+	if (min != SND_CTL_TLV_DB_GAIN_MUTE) {
+		min_norm = exp10((min - max) / 6000.0);
+		normalized = (normalized - min_norm) / (1 - min_norm);
+	}
+
+	return normalized;
+}
+
+static int set_normalized_volume(snd_mixer_elem_t *elem,
+				 snd_mixer_selem_channel_id_t channel,
+				 double volume,
+				 int dir)
+{
+	long min, max, value;
+	double min_norm;
+	int err;
+
+	err = snd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+	if (err < 0 || min >= max) {
+		err = snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+		if (err < 0)
+			return err;
+
+		value = lrint_dir(volume * (max - min), dir) + min;
+		return snd_mixer_selem_set_playback_volume(elem, channel, value);
+	}
+
+	if (use_linear_dB_scale(min, max)) {
+		value = lrint_dir(volume * (max - min), dir) + min;
+		return snd_mixer_selem_set_playback_dB(elem, channel, value, dir);
+	}
+
+	if (min != SND_CTL_TLV_DB_GAIN_MUTE) {
+		min_norm = exp10((min - max) / 6000.0);
+		volume = volume * (1 - min_norm) + min_norm;
+	}
+	value = lrint_dir(6000.0 * log10(volume), dir) + max;
+	return snd_mixer_selem_set_playback_dB(elem, channel, value, dir);
+}
 
 static gboolean asound_find_elements(VolumeALSAPlugin * vol)
 {
@@ -101,16 +900,16 @@ static gboolean asound_find_elements(VolumeALSAPlugin * vol)
       vol->master_element != NULL;
       vol->master_element = snd_mixer_elem_next(vol->master_element))
     {
-        snd_mixer_selem_get_id(vol->master_element, vol->sid);
         if ((snd_mixer_selem_is_active(vol->master_element)))
         {
-            name = snd_mixer_selem_id_get_name(vol->sid);
-            if (!strcmp(name, "Master")) return TRUE;
-            if (!strcmp(name, "Front")) return TRUE;
-            if (!strcmp(name, "PCM")) return TRUE;
-            if (!strcmp(name, "LineOut")) return TRUE;
-            if (!strcmp(name, "Digital")) return TRUE;
-            if (!strcmp(name, "Headphone")) return TRUE;
+            name = snd_mixer_selem_get_name(vol->master_element);
+            if (!strncmp (name, "Master", 6)) return TRUE;
+            if (!strncmp (name, "Front", 5)) return TRUE;
+            if (!strncmp (name, "PCM", 3)) return TRUE;
+            if (!strncmp (name, "LineOut", 7)) return TRUE;
+            if (!strncmp (name, "Digital", 7)) return TRUE;
+            if (!strncmp (name, "Headphone", 9)) return TRUE;
+            if (!strncmp (name, "Speaker", 7)) return TRUE;
         }
     }
     return FALSE;
@@ -188,6 +987,7 @@ static gboolean asound_restart(gpointer vol_gpointer)
 {
     VolumeALSAPlugin * vol = vol_gpointer;
 
+    if (!g_main_current_source()) return TRUE;
     if (g_source_is_destroyed(g_main_current_source()))
         return FALSE;
 
@@ -211,10 +1011,10 @@ static void asound_get_default_card (char *id)
   int inchar, count;
   char *user_config_file = g_build_filename (g_get_home_dir (), "/.asoundrc", NULL);
   FILE *fp = fopen (user_config_file, "rb");
+  type[0] = 0;
+  cid[0] = 0;
   if (fp)
   {
-    type[0] = 0;
-    cid[0] = 0;
     count = 0;
     while ((inchar = fgetc (fp)) != EOF)
     {
@@ -261,6 +1061,7 @@ static void asound_get_default_card (char *id)
   }
   if (cid[0] && type[0]) sprintf (id, "%s:%s", type, cid);
   else sprintf (id, "hw:0");
+  g_free (user_config_file);
 }
 
 static void asound_set_default_card (const char *id)
@@ -348,10 +1149,15 @@ static void asound_set_default_card (const char *id)
   g_free (user_config_file);
 }
 
-static void asound_set_bcm_card (void)
+static gboolean asound_set_bcm_card (void)
 {
-    const char *bcm = xfce_mixer_get_bcm_device_id ();
-    if (bcm) asound_set_default_card (bcm);
+    char bcmdev[64];
+    if (xfce_mixer_get_bcm_device_id (bcmdev))
+    {
+        asound_set_default_card (bcmdev);
+        return TRUE;
+    }
+    return FALSE;
 }
 
 static int asound_get_bcm_output (void)
@@ -364,7 +1170,7 @@ static int asound_get_bcm_output (void)
         fgets (buf, 128, res);
         if (sscanf (buf, "  : values=%d", &tmp)) val = tmp;
     }
-    fclose (res);
+    pclose (res);
 
     if (val == 0)
     {
@@ -375,6 +1181,33 @@ static int asound_get_bcm_output (void)
     return val;
 }
 
+static void asound_find_valid_device (void)
+{
+    // call this if the current ALSA device is invalid - it tries to find an alternative
+    g_warning ("volumealsa: Default ALSA device not valid - resetting to internal");
+    if (!asound_set_bcm_card ())
+    {
+        GList *mixers;
+        gint counter = 0;
+
+        g_warning ("volumealsa: Internal device not available - looking for first valid ALSA device...");
+        mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
+        if (mixers)
+        {
+            const char *card = xfce_mixer_get_card_id (mixers->data);
+            if (card)
+            {
+                g_warning ("volumealsa: Valid ALSA device %s found", card);
+                asound_set_default_card (card);
+                g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
+                return;
+            }
+            g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
+        }
+        g_warning ("volumealsa: No ALSA devices found");
+    }
+}
+
 /* Initialize the ALSA interface. */
 static gboolean asound_initialize(VolumeALSAPlugin * vol)
 {
@@ -382,12 +1215,11 @@ static gboolean asound_initialize(VolumeALSAPlugin * vol)
 
     asound_get_default_card (device);
     /* Access the "default" device. */
-    snd_mixer_selem_id_alloca(&vol->sid);
     snd_mixer_open(&vol->mixer, 0);
     if (snd_mixer_attach(vol->mixer, device))
     {
-        g_warning ("volumealsa: Default ALSA device not valid - resetting to internal");
-        asound_set_bcm_card ();
+        g_warning ("volumealsa: Couldn't attach mixer - looking for another valid device");
+        asound_find_valid_device ();
         asound_get_default_card (device);
         snd_mixer_attach(vol->mixer, device);
     }
@@ -399,10 +1231,10 @@ static gboolean asound_initialize(VolumeALSAPlugin * vol)
     if (!asound_find_elements (vol))
     {
         // this is a belt-and-braces check in case a driver has become corrupt...
-        g_warning ("volumealsa: Can't find elements - resetting to internal");
+        g_warning ("volumealsa: Can't find elements - trying to reset to internal");
         snd_mixer_detach (vol->mixer, device);
         snd_mixer_free (vol->mixer);
-        asound_set_bcm_card ();
+        asound_find_valid_device ();
         asound_get_default_card (device);
         snd_mixer_open (&vol->mixer, 0);
         snd_mixer_attach (vol->mixer, device);
@@ -410,9 +1242,6 @@ static gboolean asound_initialize(VolumeALSAPlugin * vol)
         snd_mixer_load (vol->mixer);
         if (!asound_find_elements (vol)) return FALSE;
    }
-
-    /* Set the playback volume range as we wish it. */
-    snd_mixer_selem_set_playback_volume_range(vol->master_element, 0, 100);
 
     /* Listen to events from ALSA. */
     int n_fds = snd_mixer_poll_descriptors_count(vol->mixer);
@@ -454,9 +1283,12 @@ static void asound_deinitialize(VolumeALSAPlugin * vol)
     vol->watches = NULL;
     vol->num_channels = 0;
 
+    char device[32];
+    asound_get_default_card (device);
+    if (device) snd_mixer_detach (vol->mixer, device);
     snd_mixer_close(vol->mixer);
     vol->master_element = NULL;
-    /* FIXME: unalloc vol->sid */
+    vol->mixer = NULL;
 }
 
 /* Get the presence of the mute control from the sound system. */
@@ -480,24 +1312,27 @@ static gboolean asound_is_muted(VolumeALSAPlugin * vol)
  * This implementation returns the average of the Front Left and Front Right channels. */
 static int asound_get_volume(VolumeALSAPlugin * vol)
 {
-    long aleft = 0;
-    long aright = 0;
+    double aleft = 0;
+    double aright = 0;
     if (vol->master_element != NULL)
     {
-        snd_mixer_selem_get_playback_volume(vol->master_element, SND_MIXER_SCHN_FRONT_LEFT, &aleft);
-        snd_mixer_selem_get_playback_volume(vol->master_element, SND_MIXER_SCHN_FRONT_RIGHT, &aright);
+        aleft = get_normalized_volume(vol->master_element, SND_MIXER_SCHN_FRONT_LEFT);
+        aright = get_normalized_volume(vol->master_element, SND_MIXER_SCHN_FRONT_RIGHT);
     }
-    return (aleft + aright) >> 1;
+    return (int)round((aleft + aright) * 50);
 }
 
 /* Set the volume to the sound system.
  * This implementation sets the Front Left and Front Right channels to the specified value. */
 static void asound_set_volume(VolumeALSAPlugin * vol, int volume)
 {
+    int dir = volume - asound_get_volume(vol);
+    double vol_perc = (double)volume / 100;
+
     if (vol->master_element != NULL)
     {
-        snd_mixer_selem_set_playback_volume(vol->master_element, SND_MIXER_SCHN_FRONT_LEFT, volume);
-        snd_mixer_selem_set_playback_volume(vol->master_element, SND_MIXER_SCHN_FRONT_RIGHT, volume);
+        set_normalized_volume(vol->master_element, SND_MIXER_SCHN_FRONT_LEFT, vol_perc, dir);
+        set_normalized_volume(vol->master_element, SND_MIXER_SCHN_FRONT_RIGHT, vol_perc, dir);
     }
 }
 
@@ -506,87 +1341,100 @@ static void asound_set_volume(VolumeALSAPlugin * vol, int volume)
 static void volumealsa_update_current_icon(VolumeALSAPlugin * vol)
 {
     /* Mute status. */
-    gboolean mute = asound_is_muted(vol);
-    int level = asound_get_volume(vol);
+    gboolean mute;
+    int level;
+    /* Mute status. */
+    if (vol->sink == -1)
+    {
+        mute = asound_is_muted(vol);
+        level = asound_get_volume(vol);
+    }
+    else
+    {
+        mute = get_bt_mute (vol);
+        level = get_bt_vol (vol) / 656;
+    }
 
     /* Change icon according to mute / volume */
     const char* icon="audio-volume-muted";
-    const char* icon_panel="audio-volume-muted-panel";
-    const char* icon_fallback=ICONS_MUTE;
     if (mute)
     {
-         icon_panel = "audio-volume-muted-panel";
          icon="audio-volume-muted";
-         icon_fallback=ICONS_MUTE;
     }
-    else if (level >= 75)
+    else if (level >= 66)
     {
-         icon_panel = "audio-volume-high-panel";
          icon="audio-volume-high";
-         icon_fallback=ICONS_VOLUME_HIGH;
     }
-    else if (level >= 50)
+    else if (level >= 33)
     {
-         icon_panel = "audio-volume-medium-panel";
          icon="audio-volume-medium";
-         icon_fallback=ICONS_VOLUME_MEDIUM;
     }
     else if (level > 0)
     {
-         icon_panel = "audio-volume-low-panel";
          icon="audio-volume-low";
-         icon_fallback=ICONS_VOLUME_LOW;
     }
 
-    vol->icon_panel = icon_panel;
     vol->icon = icon;
-    vol->icon_fallback= icon_fallback;
 }
 
-void image_set_from_file(LXPanel * p, GtkWidget * image, const char * file)
+void set_icon (LXPanel *p, GtkWidget *image, const char *icon, int size)
 {
-    GdkPixbuf * pixbuf = gdk_pixbuf_new_from_file_at_scale(file, panel_get_icon_size (p) - ICON_BUTTON_TRIM, panel_get_icon_size (p) - ICON_BUTTON_TRIM, TRUE, NULL);
-    if (pixbuf != NULL)
+    GdkPixbuf *pixbuf;
+    if (size == 0) size = panel_get_icon_size (p) - ICON_BUTTON_TRIM;
+    if (gtk_icon_theme_has_icon (panel_get_icon_theme (p), icon))
     {
-        gtk_image_set_from_pixbuf(GTK_IMAGE(image), pixbuf);
-        g_object_unref(pixbuf);
+        GtkIconInfo *info = gtk_icon_theme_lookup_icon (panel_get_icon_theme (p), icon, size, GTK_ICON_LOOKUP_FORCE_SIZE);
+        pixbuf = gtk_icon_info_load_icon (info, NULL);
+        gtk_icon_info_free (info);
+        if (pixbuf != NULL)
+        {
+            gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
+            g_object_unref (pixbuf);
+            return;
+        }
     }
-}
-
-gboolean image_set_icon_theme(LXPanel * p, GtkWidget * image, const gchar * icon)
-{
-    if (gtk_icon_theme_has_icon(panel_get_icon_theme (p), icon))
+    else
     {
-        GdkPixbuf * pixbuf = gtk_icon_theme_load_icon(panel_get_icon_theme (p), icon, panel_get_icon_size (p) - ICON_BUTTON_TRIM, 0, NULL);
-        gtk_image_set_from_pixbuf(GTK_IMAGE(image), pixbuf);
-        g_object_unref(pixbuf);
-        return TRUE;
+        char path[256];
+        sprintf (path, "%s/images/%s.png", PACKAGE_DATA_DIR, icon);
+        pixbuf = gdk_pixbuf_new_from_file_at_scale (path, size, size, TRUE, NULL);
+        if (pixbuf != NULL)
+        {
+            gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
+            g_object_unref (pixbuf);
+        }
     }
-    return FALSE;
 }
 
 /* Do a full redraw of the display. */
 static void volumealsa_update_display(VolumeALSAPlugin * vol)
 {
+    gboolean mute;
+    int level;
     /* Mute status. */
-    gboolean mute = asound_is_muted(vol);
-    int level = asound_get_volume(vol);
+    if (vol->sink == -1)
+    {
+        mute = asound_is_muted(vol);
+        level = asound_get_volume(vol);
+    }
+    else
+    {
+        mute = get_bt_mute (vol);
+        level = get_bt_vol (vol) / 656;
+    }
     if (mute) level = 0;
 
     volumealsa_update_current_icon(vol);
 
     /* Change icon, fallback to default icon if theme doesn't exsit */
-    if ( ! image_set_icon_theme(vol->panel, vol->tray_icon, vol->icon_panel))
-    {
-        if ( ! image_set_icon_theme(vol->panel, vol->tray_icon, vol->icon))
-        {
-            image_set_from_file(vol->panel, vol->tray_icon, vol->icon_fallback);
-        }
-    }
+    set_icon (vol->panel, vol->tray_icon, vol->icon, 0);
 
     g_signal_handler_block(vol->mute_check, vol->mute_check_handler);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(vol->mute_check), mute);
-    gtk_widget_set_sensitive(vol->mute_check, asound_has_mute(vol));
+    if (vol->sink == -1)
+        gtk_widget_set_sensitive(vol->mute_check, asound_has_mute(vol));
+    else
+        gtk_widget_set_sensitive(vol->mute_check, TRUE);
     g_signal_handler_unblock(vol->mute_check, vol->mute_check_handler);
 
     /* Volume. */
@@ -604,6 +1452,13 @@ static void volumealsa_update_display(VolumeALSAPlugin * vol)
 }
 
 /*** Gstreamer access functions copied from xfce_mixer ***/
+
+static void
+_xfce_mixer_destroy_mixer (GstMixer *mixer)
+{
+  gst_element_set_state (GST_ELEMENT (mixer), GST_STATE_NULL);
+  gst_object_unref (GST_OBJECT (mixer));
+}
 
 static gboolean
 _xfce_mixer_filter_mixer (GstMixer *mixer,
@@ -691,18 +1546,22 @@ static gboolean xfce_mixer_is_bcm_device (GstElement *card)
   return FALSE;
 }
 
-static const gchar * xfce_mixer_get_bcm_device_id (void)
+static gboolean xfce_mixer_get_bcm_device_id (gchar *id)
 {
     gint counter = 0;
     GList *iter, *mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
     for (iter = mixers; iter != NULL; iter = g_list_next (iter))
     {
-        if (xfce_mixer_is_bcm_device (iter->data)) return xfce_mixer_get_card_id (iter->data);
+        if (xfce_mixer_is_bcm_device (iter->data))
+        {
+            if (id) strcpy (id, xfce_mixer_get_card_id (iter->data));
+            g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
+            return TRUE;
+        }
     }
-    return NULL;
+    if (mixers) g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
+    return FALSE;
 }
-
-#ifdef CUSTOM_MENU
 
 static void volumealsa_popup_set_position(GtkWidget * menu, gint * px, gint * py, gboolean * push_in, gpointer data)
 {
@@ -722,8 +1581,9 @@ static void send_message (void)
   id = g_bus_own_name (G_BUS_TYPE_SESSION, "org.lxde.volumealsa", 0, NULL, NULL, NULL, NULL, NULL);
 }
 
-static void set_default_card_event (GtkWidget * widget, GdkEventButton * event, VolumeALSAPlugin * vol)
+static void set_default_card_event (GtkWidget * widget, VolumeALSAPlugin * vol)
 {
+    stop_pulseaudio (vol);
     asound_set_default_card (widget->name);
     asound_restart (vol);
     volumealsa_update_display (vol);
@@ -731,25 +1591,22 @@ static void set_default_card_event (GtkWidget * widget, GdkEventButton * event, 
     send_message ();
 }
 
-static void set_bcm_output (GtkWidget * widget, GdkEventButton * event, VolumeALSAPlugin * vol)
+static void set_bcm_output (GtkWidget * widget, VolumeALSAPlugin *vol)
 {
-    char cmdbuf[64];
-    const char *bcm;
+    char cmdbuf[64], bcmdev[64];
 
     /* check that the BCM device is default... */
-    bcm = xfce_mixer_get_bcm_device_id ();
+    stop_pulseaudio (vol);
     asound_get_default_card (cmdbuf);
-    if (strcmp (cmdbuf, bcm))
+    if (cmdbuf && xfce_mixer_get_bcm_device_id (bcmdev) && strcmp (cmdbuf, bcmdev))
     {
         /* ... and set it to default if not */
-        asound_set_default_card (bcm);
+        asound_set_default_card (bcmdev);
         asound_restart (vol);
 
         /* set the output channel on the BCM device */
         sprintf (cmdbuf, "amixer cset numid=3 %s", widget->name);
         system (cmdbuf);
-
-        volumealsa_update_display (vol);
     }
     else
     {
@@ -757,23 +1614,66 @@ static void set_bcm_output (GtkWidget * widget, GdkEventButton * event, VolumeAL
         sprintf (cmdbuf, "amixer cset numid=3 %s", widget->name);
         system (cmdbuf);
     }
+    volumealsa_update_display (vol);
     gtk_menu_popdown (GTK_MENU(vol->menu_popup));
     send_message ();
 }
 
-static void open_config_dialog (GtkWidget * widget, GdkEventButton * event, VolumeALSAPlugin * vol)
+static gboolean validate_devices (VolumeALSAPlugin *vol)
+{
+    char device[32];
+    snd_hctl_t *hctl;
+    gint counter = 0;
+    GList *iter, *mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
+
+    /* Get the current setting - find cards, and which one is default */
+    gboolean def_good = FALSE;
+    for (iter = mixers; iter != NULL; iter = g_list_next (iter))
+    {
+        if (xfce_mixer_is_default_card (iter->data))
+        {
+            /* Check if we are still connected to the device */
+            g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
+            asound_get_default_card (device);
+            if (snd_mixer_get_hctl (vol->mixer, device, &hctl))
+            {
+                asound_restart (vol);
+                return FALSE;
+            }
+            else return TRUE;
+        }
+    }
+    asound_find_valid_device ();
+    asound_restart (vol);
+    if (mixers) g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
+    return FALSE;
+}
+
+static void open_config_dialog (GtkWidget * widget, VolumeALSAPlugin * vol)
 {
     volumealsa_configure (vol->panel, vol->plugin);
     gtk_menu_popdown (GTK_MENU(vol->menu_popup));
 }
 
-#endif
+/* Handler for "focus-out" signal on popup window. */
+static gboolean volumealsa_mouse_out (GtkWidget * widget, GdkEventButton * event, VolumeALSAPlugin * vol)
+{
+    /* Hide the widget. */
+    gtk_widget_hide(vol->popup_window);
+    vol->show_popup = FALSE;
+    gdk_pointer_ungrab (GDK_CURRENT_TIME);
+    return FALSE;
+}
 
 /* Handler for "button-press-event" signal on main widget. */
 
 static gboolean volumealsa_button_press_event(GtkWidget * widget, GdkEventButton * event, LXPanel * panel)
 {
     VolumeALSAPlugin * vol = lxpanel_plugin_get_data(widget);
+
+    if (vol->stopped) return TRUE;
+
+    if (!validate_devices (vol)) volumealsa_update_display (vol);
 
     /* Left-click.  Show or hide the popup window. */
     if (event->button == 1)
@@ -787,7 +1687,17 @@ static gboolean volumealsa_button_press_event(GtkWidget * widget, GdkEventButton
         {
             volumealsa_build_popup_window (vol->plugin);
             volumealsa_update_display (vol);
-            gtk_widget_show_all(vol->popup_window);
+
+            gint x, y;
+            gtk_window_set_position (GTK_WINDOW (vol->popup_window), GTK_WIN_POS_MOUSE);
+            // need to draw the window in order to allow the plugin position helper to get its size
+            gtk_widget_show_all (vol->popup_window);
+            gtk_widget_hide (vol->popup_window);
+            lxpanel_plugin_popup_set_position_helper (panel, widget, vol->popup_window, &x, &y);
+            gdk_window_move (gtk_widget_get_window (vol->popup_window), x, y);
+            gtk_window_present (GTK_WINDOW (vol->popup_window));
+            gdk_pointer_grab (gtk_widget_get_window (vol->popup_window), TRUE, GDK_BUTTON_PRESS_MASK, NULL, NULL, GDK_CURRENT_TIME);
+            g_signal_connect (G_OBJECT(vol->popup_window), "button-press-event", G_CALLBACK (volumealsa_mouse_out), vol);
             vol->show_popup = TRUE;
         }
     }
@@ -797,74 +1707,120 @@ static gboolean volumealsa_button_press_event(GtkWidget * widget, GdkEventButton
     {
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(vol->mute_check), ! gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vol->mute_check)));
     }
-#ifdef CUSTOM_MENU
     else if (event->button == 3)
     {
-        gint counter = 0, val = -1;
+        gint counter, devices;
         GList *iter, *mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
         GtkWidget *image, *mi;
-        GdkPixbuf *pixbuf = NULL;
-        gboolean def_good = FALSE, ext_dev = FALSE;
+        gboolean ext_dev = FALSE, bt_dev = TRUE;
 
-        if (gtk_icon_theme_has_icon (panel_get_icon_theme (vol->panel), "dialog-ok-apply"))
-            pixbuf = gtk_icon_theme_load_icon (panel_get_icon_theme (vol->panel), "dialog-ok-apply", 16, 0, NULL);
-        if (pixbuf == NULL)
-            pixbuf = gdk_pixbuf_new_from_file_at_scale (ICONS_TICK, 16, 16, TRUE, NULL);
-
-        if (pixbuf != NULL)
-        {
-            image = gtk_image_new_from_pixbuf(pixbuf);
-            g_object_unref(pixbuf);
-        }
+        image = gtk_image_new ();
+        set_icon (vol->panel, image, "dialog-ok-apply", 16);
 
         vol->menu_popup = gtk_menu_new ();
 
-        counter = 2;
-        for (iter = mixers; iter != NULL; iter = g_list_next (iter))
+        if (xfce_mixer_get_bcm_device_id (NULL))
         {
-            if (!xfce_mixer_is_bcm_device (iter->data)) counter++;
-
-            if (xfce_mixer_is_default_card (iter->data))
+            /* if the onboard card is default, find currently-set output */
+            counter = -1;
+            for (iter = mixers; iter != NULL; iter = g_list_next (iter))
             {
-                def_good = TRUE;
-                if (xfce_mixer_is_bcm_device (iter->data))
+                if (xfce_mixer_is_default_card (iter->data) && xfce_mixer_is_bcm_device (iter->data))
                 {
-                    /* if the onboard card is default, find currently-set output */
-                    val = asound_get_bcm_output ();
+                    counter = asound_get_bcm_output ();
                     break;
                 }
             }
-        }
 
-        if (!def_good)
+            mi = gtk_image_menu_item_new_with_label (_("Analog"));
+            gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
+            if (counter == 1)
+            {
+                gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
+            }
+            gtk_widget_set_name (mi, "1");
+            g_signal_connect (mi, "activate", G_CALLBACK (set_bcm_output), (gpointer) vol);
+            gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
+
+            mi = gtk_image_menu_item_new_with_label (_("HDMI"));
+            gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
+            if (counter == 2)
+            {
+                gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
+            }
+            gtk_widget_set_name (mi, "2");
+            g_signal_connect (mi, "activate", G_CALLBACK (set_bcm_output), (gpointer) vol);
+            gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
+
+            bt_dev = FALSE;
+            devices = 2;
+        }
+        else devices = 0;
+
+        // add Bluetooth devices if PulseAudio is running...
+        if (vol->objmanager)
         {
-            /* The default device is not present - fall back... */
-            g_warning ("volumealsa: Default ALSA device not valid - resetting to internal");
-            asound_set_bcm_card ();
-            asound_restart (vol);
-            volumealsa_update_display (vol);
-            val = asound_get_bcm_output ();
+            char *btdevice = NULL;
+            if (vol->con) get_bz_name_of_pa_sink (vol, &btdevice);
+
+            // iterate all the objects the manager knows about
+            GList *objects = g_dbus_object_manager_get_objects (vol->objmanager);
+            while (objects != NULL)
+            {
+                GDBusObject *object = (GDBusObject *) objects->data;
+                GList *interfaces = g_dbus_object_get_interfaces (object);
+                while (interfaces != NULL)
+                {
+                    // if an object has a Device1 interface, it is a Bluetooth device - add it to the list
+                    GDBusInterface *interface = G_DBUS_INTERFACE (interfaces->data);
+                    if (g_strcmp0 (g_dbus_proxy_get_interface_name (G_DBUS_PROXY (interface)), "org.bluez.Device1") == 0)
+                    {
+                        GVariant *name = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (interface), "Alias");
+                        GVariant *paired = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (interface), "Paired");
+                        GVariant *trusted = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (interface), "Trusted");
+                        GVariant *icon = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (interface), "Icon");
+                        DEVICE_TYPE dev = check_uuids (vol, g_dbus_proxy_get_object_path (G_DBUS_PROXY (interface)));
+                        if (name && icon && paired && trusted && dev == DEV_AUDIO_SINK && g_variant_get_boolean (paired) && g_variant_get_boolean (trusted))
+                        {
+                            if (!bt_dev)
+                            {
+                                mi = gtk_separator_menu_item_new ();
+                                gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
+                                bt_dev = TRUE;
+                            }
+                            mi = gtk_image_menu_item_new_with_label (g_variant_get_string (name, NULL));
+                            gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
+
+                            const char *devname = g_dbus_object_get_object_path (object);
+                            if (btdevice)
+                            {
+                                if (!strncmp (btdevice + (strlen (btdevice) - 17), devname + (strlen (devname) - 17), 17))
+                                {
+                                    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
+                                }
+                            }
+                            gtk_widget_set_name (mi, devname);  // use the widget name to store the card id
+                            g_signal_connect (mi, "activate", G_CALLBACK (set_bt_card_event), (gpointer) vol);
+                            gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
+                            devices++;
+                        }
+                        g_variant_unref (name);
+                        g_variant_unref (paired);
+                        g_variant_unref (trusted);
+                        break;
+                    }
+                    interfaces = interfaces->next;
+                }
+                objects = objects->next;
+            }
         }
 
-        mi = gtk_image_menu_item_new_with_label (_("Analog"));
-        if (val == 1) gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
-        gtk_widget_set_name (mi, "1");
-        g_signal_connect (mi, "button-press-event", G_CALLBACK (set_bcm_output), (gpointer) vol);
-        g_signal_connect (mi, "button-release-event", G_CALLBACK (set_bcm_output), (gpointer) vol);
-        gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
-
-        mi = gtk_image_menu_item_new_with_label (_("HDMI"));
-        if (val == 2) gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
-        gtk_widget_set_name (mi, "2");
-        g_signal_connect (mi, "button-press-event", G_CALLBACK (set_bcm_output), (gpointer) vol);
-        g_signal_connect (mi, "button-release-event", G_CALLBACK (set_bcm_output), (gpointer) vol);
-        gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
-
+        // add external devices...
         for (iter = mixers; iter != NULL; iter = g_list_next (iter))
         {
             if (!xfce_mixer_is_bcm_device (iter->data))
             {
-                if (!ext_dev)
+                if (!ext_dev && devices)
                 {
                     mi = gtk_separator_menu_item_new ();
                     gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
@@ -874,67 +1830,76 @@ static gboolean volumealsa_button_press_event(GtkWidget * widget, GdkEventButton
                 strcpy (namebuf, xfce_mixer_get_card_display_name (iter->data));
                 namebuf[strlen(namebuf) - 13] = 0;
                 mi = gtk_image_menu_item_new_with_label (namebuf);
+                gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
 
-                if (xfce_mixer_is_default_card (iter->data)) gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
+                if (vol->sink == -1 && xfce_mixer_is_default_card (iter->data))
+                {
+                    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(mi), image);
+                }
                 gtk_widget_set_name (mi, xfce_mixer_get_card_id (iter->data));  // use the widget name to store the card id
-                g_signal_connect (mi, "button-press-event", G_CALLBACK (set_default_card_event), (gpointer) vol);
-                g_signal_connect (mi, "button-release-event", G_CALLBACK (set_default_card_event), (gpointer) vol);
+                g_signal_connect (mi, "activate", G_CALLBACK (set_default_card_event), (gpointer) vol);
                 gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
                 ext_dev = TRUE;
+                devices++;
             }
         }
 
         if (ext_dev)
         {
-            //mi = gtk_separator_menu_item_new ();
-            //gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
+            mi = gtk_separator_menu_item_new ();
+            gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
 
-            mi = gtk_image_menu_item_new_with_label (_("Device Settings..."));
-            g_signal_connect (mi, "button-press-event", G_CALLBACK (open_config_dialog), (gpointer) vol);
-            g_signal_connect (mi, "button-release-event", G_CALLBACK (open_config_dialog), (gpointer) vol);
+            mi = gtk_image_menu_item_new_with_label (_("USB Device Settings..."));
+            g_signal_connect (mi, "activate", G_CALLBACK (open_config_dialog), (gpointer) vol);
             gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
         }
 
+        if (!devices)
+        {
+            mi = gtk_image_menu_item_new_with_label (_("No audio devices found"));
+            gtk_widget_set_sensitive (GTK_WIDGET (mi), FALSE);
+            gtk_menu_shell_append (GTK_MENU_SHELL(vol->menu_popup), mi);
+        }
+
+        // lock menu if a dialog is open
+        if (vol->conn_dialog)
+        {
+            GList *items = gtk_container_get_children (GTK_CONTAINER (vol->menu_popup));
+            while (items)
+            {
+                gtk_widget_set_sensitive (GTK_WIDGET (items->data), FALSE);
+                items = items->next;
+            }
+            g_list_free (items);
+        }
+    
         gtk_widget_show_all (vol->menu_popup);
         gtk_menu_popup (GTK_MENU(vol->menu_popup), NULL, NULL, (GtkMenuPositionFunc) volumealsa_popup_set_position, (gpointer) vol,
             event->button, event->time);
+        if (mixers) g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
     }
-#endif
     return TRUE;
-}
-
-/* Handler for "focus-out" signal on popup window. */
-static gboolean volumealsa_popup_focus_out(GtkWidget * widget, GdkEvent * event, VolumeALSAPlugin * vol)
-{
-    /* Hide the widget. */
-    gtk_widget_hide(vol->popup_window);
-    vol->show_popup = FALSE;
-    return FALSE;
-}
-
-/* Handler for "map" signal on popup window. */
-static void volumealsa_popup_map(GtkWidget * widget, VolumeALSAPlugin * vol)
-{
-    lxpanel_plugin_adjust_popup_position(widget, vol->plugin);
 }
 
 static void volumealsa_theme_change(GtkWidget * widget, VolumeALSAPlugin * vol)
 {
-    if ( ! image_set_icon_theme(vol->panel, vol->tray_icon, vol->icon_panel))
-    {
-        if ( ! image_set_icon_theme(vol->panel, vol->tray_icon, vol->icon))
-        {
-            image_set_from_file(vol->panel, vol->tray_icon, vol->icon_fallback);
-        }
-    }
+    set_icon (vol->panel, vol->tray_icon, vol->icon, 0);
 }
 
 /* Handler for "value_changed" signal on popup window vertical scale. */
 static void volumealsa_popup_scale_changed(GtkRange * range, VolumeALSAPlugin * vol)
 {
     /* Reflect the value of the control to the sound system. */
-    if (!asound_is_muted (vol))
-    asound_set_volume(vol, gtk_range_get_value(range));
+    if (vol->sink == -1)
+    {
+        if (!asound_is_muted (vol))
+            asound_set_volume(vol, gtk_range_get_value(range));
+    }
+    else
+    {
+        if (!get_bt_mute (vol))
+            set_bt_vol (vol, gtk_range_get_value (range) * 656);
+    }
 
     /* Redraw the controls. */
     volumealsa_update_display(vol);
@@ -962,103 +1927,29 @@ static void volumealsa_popup_mute_toggled(GtkWidget * widget, VolumeALSAPlugin *
     /* Get the state of the mute toggle. */
     gboolean active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 
-    /* Reflect the mute toggle to the sound system. */
-    if (vol->master_element != NULL)
+    if (vol->sink == -1)
     {
-        int chn;
-        for (chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++)
-            snd_mixer_selem_set_playback_switch(vol->master_element, chn, ((active) ? 0 : 1));
+        /* Reflect the mute toggle to the sound system. */
+        if (vol->master_element != NULL)
+        {
+            int chn;
+            for (chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++)
+                snd_mixer_selem_set_playback_switch(vol->master_element, chn, ((active) ? 0 : 1));
+        }
+    }
+    else
+    {
+        set_bt_mute (vol, active);
     }
 
     /* Redraw the controls. */
     volumealsa_update_display(vol);
 }
 
-#ifndef CUSTOM_MENU
-
-static void default_card_toggled (GtkWidget * widget, VolumeALSAPlugin * vol)
-{
-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)))
-    {
-        /* set the new default card */
-        asound_set_default_card (widget->name);
-        asound_restart (vol);
-
-        volumealsa_update_display (vol);
-    }
-}
-
-static void bcm_output_toggled (GtkWidget *widget, VolumeALSAPlugin * vol)
-{
-    char cmdbuf[64];
-    const char *bcm;
-
-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)))
-    {
-        /* check that the BCM device is default... */
-        bcm = xfce_mixer_get_bcm_device_id ();
-        asound_get_default_card (cmdbuf);
-        if (strcmp (cmdbuf, bcm))
-        {
-            /* ... and set it to default if not */
-            asound_set_default_card (bcm);
-            asound_restart (vol);
-
-            /* set the output channel on the BCM device */
-            sprintf (cmdbuf, "amixer cset numid=3 %s", widget->name);
-            system (cmdbuf);
-
-            volumealsa_update_display (vol);
-        }
-        else
-        {
-            /* set the output channel on the BCM device */
-            sprintf (cmdbuf, "amixer cset numid=3 %s", widget->name);
-            system (cmdbuf);
-        }
-    }
-}
-
-#endif
-
 /* Build the window that appears when the top level widget is clicked. */
 static void volumealsa_build_popup_window(GtkWidget *p)
 {
     VolumeALSAPlugin * vol = lxpanel_plugin_get_data(p);
-
-    gboolean def_good = FALSE;
-    gint counter = 0, val = -1;
-    GList *iter, *mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
-
-    /* Get the current setting - find cards, and which one is default */
-    counter = 2;
-    for (iter = mixers; iter != NULL; iter = g_list_next (iter))
-    {
-        if (!xfce_mixer_is_bcm_device (iter->data)) counter++;
-
-        if (xfce_mixer_is_default_card (iter->data))
-        {
-            def_good = TRUE;
-            if (xfce_mixer_is_bcm_device (iter->data))
-            {
-                /* if the onboard card is default, find currently-set output */
-                val = asound_get_bcm_output ();
-                break;
-            }
-            else val = counter;
-        }
-    }
-
-    /* Reset the default device if it is invalid */
-    if (!def_good)
-    {
-        /* The default device is not present - fall back... */
-        g_warning ("volumealsa: Default ALSA device not valid - resetting to internal");
-        asound_set_bcm_card ();
-        asound_restart (vol);
-        volumealsa_update_display (vol);
-        val = asound_get_bcm_output ();
-    }
 
     if (vol->popup_window)
     {
@@ -1067,20 +1958,13 @@ static void volumealsa_build_popup_window(GtkWidget *p)
     }
 
     /* Create a new window. */
-    vol->popup_window = gtk_window_new(GTK_WINDOW_POPUP);
+    vol->popup_window = gtk_window_new (GTK_WINDOW_POPUP);
     gtk_widget_set_name (vol->popup_window, "volals");
     gtk_window_set_decorated(GTK_WINDOW(vol->popup_window), FALSE);
     gtk_container_set_border_width(GTK_CONTAINER(vol->popup_window), 5);
-#ifndef CUSTOM_MENU
-    gtk_window_set_default_size (GTK_WINDOW(vol->popup_window), 100, 140);
-#endif
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(vol->popup_window), TRUE);
     gtk_window_set_skip_pager_hint(GTK_WINDOW(vol->popup_window), TRUE);
     gtk_window_set_type_hint(GTK_WINDOW(vol->popup_window), GDK_WINDOW_TYPE_HINT_UTILITY);
-
-    /* Connect signals. */
-    g_signal_connect(G_OBJECT(vol->popup_window), "focus-out-event", G_CALLBACK(volumealsa_popup_focus_out), vol);
-    g_signal_connect(G_OBJECT(vol->popup_window), "map", G_CALLBACK(volumealsa_popup_map), vol);
 
     /* Create a scrolled window as the child of the top level window. */
     GtkWidget * scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
@@ -1098,27 +1982,11 @@ static void volumealsa_build_popup_window(GtkWidget *p)
     gtk_viewport_set_shadow_type(GTK_VIEWPORT(viewport), GTK_SHADOW_NONE);
     gtk_widget_show(viewport);
 
-#ifdef CUSTOM_MENU
     gtk_container_set_border_width(GTK_CONTAINER(vol->popup_window), 0);
     gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwindow), GTK_SHADOW_IN);
     /* Create a vertical box as the child of the viewport. */
     GtkWidget * box = gtk_vbox_new (FALSE, 0);
     gtk_container_add(GTK_CONTAINER(viewport), box);
-#else
-    /* Create a vertical box as the child of the viewport. */
-    GtkWidget *bvbox = gtk_vbox_new (FALSE, 0);
-    gtk_container_add(GTK_CONTAINER(viewport), bvbox);
-    gtk_widget_show (bvbox);
-
-    /* Create a frame as the child of the vbox. */
-    GtkWidget * frame = gtk_frame_new(_("Volume"));
-    //gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
-    gtk_box_pack_start(GTK_BOX(bvbox), frame, TRUE, TRUE, 0);
-
-    /* Create a vertical box as the child of the frame. */
-    GtkWidget * box = gtk_vbox_new(FALSE, 0);
-    gtk_container_add(GTK_CONTAINER(frame), box);
-#endif
 
     /* Create a vertical scale as the child of the vertical box. */
     vol->volume_scale = gtk_vscale_new(GTK_ADJUSTMENT(gtk_adjustment_new(100, 0, 100, 0, 0, 0)));
@@ -1127,6 +1995,7 @@ static void volumealsa_build_popup_window(GtkWidget *p)
     gtk_scale_set_draw_value(GTK_SCALE(vol->volume_scale), FALSE);
     gtk_range_set_inverted(GTK_RANGE(vol->volume_scale), TRUE);
     gtk_box_pack_start(GTK_BOX(box), vol->volume_scale, TRUE, TRUE, 0);
+    gtk_widget_set_can_focus (vol->volume_scale, FALSE);
 
     /* Value-changed and scroll-event signals. */
     vol->volume_scale_handler = g_signal_connect(vol->volume_scale, "value-changed", G_CALLBACK(volumealsa_popup_scale_changed), vol);
@@ -1136,58 +2005,31 @@ static void volumealsa_build_popup_window(GtkWidget *p)
     vol->mute_check = gtk_check_button_new_with_label(_("Mute"));
     gtk_box_pack_end(GTK_BOX(box), vol->mute_check, FALSE, FALSE, 0);
     vol->mute_check_handler = g_signal_connect(vol->mute_check, "toggled", G_CALLBACK(volumealsa_popup_mute_toggled), vol);
+    gtk_widget_set_can_focus (vol->mute_check, FALSE);
 
-#ifndef CUSTOM_MENU
-    /* Create a frame as the child of the vbox. */
-    GtkWidget * frame2 = gtk_frame_new (_("Output"));
-    gtk_box_pack_end (GTK_BOX(bvbox), frame2, FALSE, FALSE, 0);
-
-    /* Create a vertical box as the child of the frame. */
-    GtkWidget * box2 = gtk_vbox_new (FALSE, 0);
-    gtk_container_add (GTK_CONTAINER(frame2), box2);
-
-    /* Add radio buttons for the BCM device outputs */
-    GtkWidget *rb, *last, *sep;
-    last = rb = gtk_radio_button_new_with_label (NULL, _("Auto"));
-    gtk_radio_button_group (GTK_RADIO_BUTTON (rb));
-    gtk_widget_set_name (rb, "0");
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rb), val == 0);
-    g_signal_connect (rb, "toggled", G_CALLBACK (bcm_output_toggled), (gpointer) vol);
-    gtk_box_pack_start (GTK_BOX (box2), rb, FALSE, FALSE, 0);
-
-    rb = gtk_radio_button_new_with_label (gtk_radio_button_group (GTK_RADIO_BUTTON (last)), _("Analog"));
-    gtk_widget_set_name (rb, "1");
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rb), val == 1);
-    g_signal_connect (rb, "toggled", G_CALLBACK (bcm_output_toggled), (gpointer) vol);
-    gtk_box_pack_start (GTK_BOX (box2), rb, FALSE, FALSE, 0);
-
-    rb = gtk_radio_button_new_with_label (gtk_radio_button_group (GTK_RADIO_BUTTON (last)), _("HDMI"));
-    gtk_widget_set_name (rb, "2");
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rb), val == 2);
-    g_signal_connect (rb, "toggled", G_CALLBACK (bcm_output_toggled), (gpointer) vol);
-    gtk_box_pack_start (GTK_BOX (box2), rb, FALSE, FALSE, 0);
-
-    /* Add separators and radio buttons for other devices */
-    counter = 3;
-    for (iter = mixers; iter != NULL; iter = g_list_next (iter))
+    /* Lock the controls if there is nothing to control... */
+    if (vol->sink == -1)
     {
-        if (!xfce_mixer_is_bcm_device (iter->data))
-        {
-            sep = gtk_hseparator_new ();
-            gtk_box_pack_start (GTK_BOX (box2), sep, FALSE, FALSE, 0);
+        gint counter = 0;
+        GList *iter, *mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
 
-            char namebuf[128];
-            strcpy (namebuf, xfce_mixer_get_card_display_name (iter->data));
-            namebuf[strlen(namebuf) - 13] = 0;
-            rb = gtk_radio_button_new_with_label (gtk_radio_button_group (GTK_RADIO_BUTTON (last)), namebuf);
-            gtk_widget_set_name (rb, xfce_mixer_get_card_id (iter->data));
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rb), val == counter);
-            g_signal_connect (rb, "toggled", G_CALLBACK (default_card_toggled), (gpointer) vol);
-            gtk_box_pack_start (GTK_BOX (box2), rb, FALSE, FALSE, 0);
-            counter++;
+        gboolean def_good = FALSE;
+        for (iter = mixers; iter != NULL; iter = g_list_next (iter))
+        {
+            if (xfce_mixer_is_default_card (iter->data))
+            {
+                def_good = TRUE;
+                break;
+            }
         }
+        if (!def_good)
+        {
+            gtk_widget_set_sensitive (vol->volume_scale, FALSE);
+            gtk_widget_set_sensitive (vol->mute_check, FALSE);
+        }
+        if (mixers) g_list_free_full (mixers, (GDestroyNotify) _xfce_mixer_destroy_mixer);
     }
-#endif
+
     /* Set background to default. */
     //gtk_widget_set_style(viewport, panel_get_defstyle(vol->panel));
 }
@@ -1198,48 +2040,24 @@ static GtkWidget *volumealsa_constructor(LXPanel *panel, config_setting_t *setti
     /* Allocate and initialize plugin context and set into Plugin private data pointer. */
     VolumeALSAPlugin * vol = g_new0(VolumeALSAPlugin, 1);
     GtkWidget *p;
+    char buffer[128];
+    FILE *fp;
 
     /* Initialise Gstreamer */
     gst_init (NULL, NULL);
 
-    /* Initialize ALSA.  If that fails, present nothing. */
-    if ( ! asound_initialize(vol))
-    {
-        volumealsa_destructor(vol);
-        return NULL;
-    }
+    /* Initialize ALSA */
+    asound_initialize (vol);
 
     /* Check the default device is valid and reset if not */
-    gint counter = 0;
-    GList *iter, *mixers = gst_audio_default_registry_mixer_filter (_xfce_mixer_filter_mixer, FALSE, &counter);
-
-    /* Get the current setting - find cards, and which one is default */
-    gboolean def_good = FALSE;
-    for (iter = mixers; iter != NULL; iter = g_list_next (iter))
-    {
-        if (xfce_mixer_is_default_card (iter->data))
-        {
-            def_good = TRUE;
-            break;
-        }
-    }
-
-    if (!def_good)
-    {
-        /* The default device is not present - fall back... */
-        g_warning ("volumealsa: Default ALSA device not valid - resetting to internal");
-        asound_set_bcm_card ();
-        asound_restart (vol);
-    }
+    validate_devices (vol);
 
     /* Allocate top level widget and set into Plugin widget pointer. */
     vol->panel = panel;
     vol->plugin = p = gtk_button_new();
     gtk_button_set_relief (GTK_BUTTON (vol->plugin), GTK_RELIEF_NONE);
     //vol->plugin = p = gtk_event_box_new();
-#ifdef CUSTOM_MENU
-    g_signal_connect(vol->plugin, "button-press-event", G_CALLBACK(volumealsa_button_press_event), NULL);
-#endif
+    g_signal_connect(vol->plugin, "button-press-event", G_CALLBACK(volumealsa_button_press_event), vol->panel);
     vol->settings = settings;
     lxpanel_plugin_set_data(p, vol, volumealsa_destructor);
     gtk_widget_add_events(p, GDK_BUTTON_PRESS_MASK);
@@ -1248,6 +2066,14 @@ static GtkWidget *volumealsa_constructor(LXPanel *panel, config_setting_t *setti
     /* Allocate icon as a child of top level. */
     vol->tray_icon = gtk_image_new();
     gtk_container_add(GTK_CONTAINER(p), vol->tray_icon);
+
+    // fall back to ALSA until we can establish if Bluetooth is available
+    vol->sink = -1;
+    system ("pulseaudio --kill");
+    configure_pa ();
+
+    // set up callbacks to see if BlueZ is on DBus
+    g_bus_watch_name (G_BUS_TYPE_SYSTEM, "org.bluez", 0, cb_name_owned, cb_name_unowned, vol, NULL);
 
     /* Initialize window to appear when icon clicked. */
     volumealsa_build_popup_window(p);
@@ -1259,6 +2085,8 @@ static GtkWidget *volumealsa_constructor(LXPanel *panel, config_setting_t *setti
     /* Update the display, show the widget, and return. */
     volumealsa_update_display(vol);
     gtk_widget_show_all(p);
+
+    vol->stopped = FALSE;
     return p;
 }
 
@@ -1301,6 +2129,7 @@ static GtkWidget *volumealsa_configure(LXPanel *panel, GtkWidget *p)
     /* FIXME: configure buttons for each action (toggle volume/mixer/mute)! */
 
     /* if command isn't set in settings then let guess it */
+#if 0    
     if (command_line == NULL && (path = g_find_program_in_path("pulseaudio")))
     {
         g_free(path);
@@ -1314,7 +2143,7 @@ static GtkWidget *volumealsa_configure(LXPanel *panel, GtkWidget *p)
             command_line = "pavucontrol";
         }
     }
-
+#endif
     /* Fallback to alsamixer when PA is not running, or when no PA utility is find */
     if (command_line == NULL)
     {
@@ -1361,12 +2190,49 @@ static void volumealsa_panel_configuration_changed(LXPanel *panel, GtkWidget *p)
 {
     VolumeALSAPlugin * vol = lxpanel_plugin_get_data(p);
 
+    // the pulseaudio server might have been killed under us...
+    if (!check_pulseaudio () && vol->sink != -1)
+    {
+        if (vol->sub_id) g_dbus_connection_signal_unsubscribe (vol->con, vol->sub_id);
+        vol->sub_id = 0;
+        system ("rm ~/.config/bt");
+        g_object_unref (vol->con);
+        vol->con = NULL;
+        vol->sink = -1;
+    }
+
     asound_restart(vol);
     volumealsa_build_popup_window (vol->plugin);
     /* Do a full redraw. */
     volumealsa_update_display(vol);
     if (vol->show_popup) gtk_widget_show_all (vol->popup_window);
 
+}
+
+static gboolean volumealsa_control_msg (GtkWidget *plugin, const char *cmd)
+{
+    VolumeALSAPlugin *vol = lxpanel_plugin_get_data (plugin);
+
+    if (!strcmp (cmd, "Start"))
+    {
+        asound_initialize (vol);
+        g_warning ("volumealsa: Restarted ALSA interface...");
+        volumealsa_update_display (vol);
+        gtk_menu_popdown (GTK_MENU (vol->menu_popup));
+        vol->stopped = FALSE;
+        return TRUE;
+    }
+
+    if (!strcmp (cmd, "Stop"))
+    {
+        asound_deinitialize (vol);
+        g_warning ("volumealsa: Stopped ALSA interface...");
+        volumealsa_update_display (vol);
+        gtk_menu_popdown (GTK_MENU (vol->menu_popup));
+        vol->stopped = TRUE;
+        return TRUE;
+   }
+   return FALSE;
 }
 
 FM_DEFINE_MODULE(lxpanel_gtk, volumealsa)
@@ -1378,11 +2244,8 @@ LXPanelPluginInit fm_module_init_lxpanel_gtk = {
 
     .new_instance = volumealsa_constructor,
     .config = volumealsa_configure,
-    .reconfigure = volumealsa_panel_configuration_changed
-#ifndef CUSTOM_MENU
-    ,
-    .button_press_event = volumealsa_button_press_event
-#endif
+    .reconfigure = volumealsa_panel_configuration_changed,
+    .control = volumealsa_control_msg
 };
 
 /* vim: set sw=4 et sts=4 : */

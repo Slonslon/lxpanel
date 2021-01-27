@@ -211,6 +211,7 @@ plugin_monitors=
 plugin_indicator=
 plugin_dhcpcdui=
 plugin_ejecter=
+plugin_bluetooth=
 
 AC_MSG_CHECKING([which plugins should be built dynamically])
 AC_ARG_WITH(plugins,
@@ -220,7 +221,7 @@ AC_ARG_WITH(plugins,
 [                         plugins prefixed with '-' are not built]
 [                         Possible plugins are: ]
 [                         netstatus, netstat, volume, volumealsa, cpu, deskno, batt,]
-[                         kbled, xkb, thermal, cpufreq, monitors, indicator, weather, dhcpcdui, ejecter]
+[                         kbled, xkb, thermal, cpufreq, monitors, indicator, weather, dhcpcdui, ejecter, bluetooth]
 , plugins="$withval",[plugins="all"])
 
 if test x"$plugins" != xall -a x"$plugins" != xnone; then
@@ -230,7 +231,7 @@ if test x"$plugins" != xall -a x"$plugins" != xnone; then
     fi
 fi
 
-ALL_PLUGINS_LIST="netstatus netstat volume volumealsa cpu deskno batt kbled xkb thermal cpufreq monitors indicator weather dhcpcdui ejecter"
+ALL_PLUGINS_LIST="netstatus netstat volume volumealsa cpu deskno batt kbled xkb thermal cpufreq monitors indicator weather dhcpcdui ejecter bluetooth"
 AC_SUBST(ALL_PLUGINS_LIST)
 
 AC_DEFUN([check_plugin_name],[
@@ -302,6 +303,7 @@ PLUGINS_LIST="\
     $plugin_indicator \
     $plugin_dhcpcdui \
     $plugin_ejecter \
+    $plugin_bluetooth \
     $plugin_weather"
 
 AC_SUBST(PLUGINS_LIST)
@@ -467,6 +469,9 @@ echo Building dynamic plugins:
     fi
     if test x"$plugin_ejecter" != x; then
         AC_MSG_RESULT([    ejecter - Ejects mounted drives])
+    fi
+    if test x"$plugin_bluetooth" != x; then
+        AC_MSG_RESULT([    bluetooth - Manages Bluetooth devices])
     fi
 else
 echo Dynamic loader for plugins....... : disabled.

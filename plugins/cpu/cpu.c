@@ -111,7 +111,7 @@ static void redraw_pixmap(CPUPlugin * c)
 	{
 		#define FONT_SIZE 12
     	char buffer[10];
-    	int val = 100 * c->stats_cpu[c->ring_cursor - 1];
+		int val = 100 * c->stats_cpu[c->ring_cursor ? c->ring_cursor - 1 : c->pixmap_width - 1];
     	sprintf (buffer, "%3d %%", val);
         cairo_select_font_face (cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     	cairo_set_font_size (cr, FONT_SIZE);

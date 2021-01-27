@@ -450,6 +450,7 @@ static GtkWidget* create_item(MenuCacheItem *item, menup *m)
         g_free(mpath);
         fm_path_unref(path);
         mi = gtk_image_menu_item_new_with_mnemonic( menu_cache_item_get_name(item) );
+        gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
         g_object_set_qdata_full(G_OBJECT(mi), SYS_MENU_ITEM_ID, fi,
                                 (GDestroyNotify)fm_file_info_unref);
         img = gtk_image_new();
@@ -744,13 +745,18 @@ make_button(menup *m, const gchar *fname, const gchar *name, GdkColor* tint, Gtk
     ENTER;
     m->menu = menu;
     m->btn = gtk_button_new();
+
+#define HIDE_OUTLINE
+#ifdef HIDE_OUTLINE
+    gtk_button_set_relief (GTK_BUTTON (m->btn), GTK_RELIEF_NONE);
+#endif
     gtk_container_set_border_width(GTK_CONTAINER(m->btn), 0);
-    gtk_misc_set_alignment (GTK_MISC (m->btn), 0.5, 0.5);
+    //gtk_misc_set_alignment (GTK_MISC (m->btn), 0.5, 0.5);
 
     /* Create a box to contain the application icon and window title. */
     GtkWidget * container = gtk_hbox_new(FALSE, 1);
     gtk_container_set_border_width(GTK_CONTAINER(container), 0);
-    gtk_misc_set_alignment (GTK_MISC (container), 0.5, 0.5);
+    //gtk_misc_set_alignment (GTK_MISC (container), 0.5, 0.5);
 
     /* Create an image to contain the application icon and add it to the box. */
     if (fname)
@@ -762,9 +768,9 @@ make_button(menup *m, const gchar *fname, const gchar *name, GdkColor* tint, Gtk
             pixbuf = gdk_pixbuf_new_from_file_at_scale(m->fname, -1, panel_get_icon_size(m->panel) - ICON_BUTTON_TRIM, TRUE, NULL);
         }
         m->icon = gtk_image_new_from_pixbuf(pixbuf);
-        gtk_misc_set_padding(GTK_MISC(m->icon), 0, 0);
         gtk_misc_set_alignment (GTK_MISC (m->icon), 0.5, 0.5);
-        spacing = panel_get_icon_size (m->panel);
+        gtk_widget_size_request (GTK_WIDGET (m->icon), &req);
+        spacing = req.width + ICON_BUTTON_TRIM;
         g_object_unref(pixbuf);
         gtk_box_pack_start(GTK_BOX(container), m->icon, FALSE, FALSE, 0);
     }
@@ -803,6 +809,8 @@ make_button(menup *m, const gchar *fname, const gchar *name, GdkColor* tint, Gtk
     /* Add the box to the button. */
     gtk_container_add(GTK_CONTAINER(m->btn), container);
     gtk_container_set_border_width(GTK_CONTAINER(m->btn), 0);
+
+    gtk_widget_set_tooltip_text (m->btn, _("Click here to open applications menu"));
 
     gtk_widget_show_all(m->btn);
 
@@ -879,6 +887,7 @@ read_item(menup *m, config_setting_t *s)
     }
     else
         goto error;
+    gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (item), TRUE);
     gtk_container_set_border_width(GTK_CONTAINER(item), 0);
     if (fname) {
         GtkWidget *img;
@@ -1021,6 +1030,7 @@ read_submenu(menup *m, config_setting_t *s, int as_item)
     if (as_item == 2) return menu;
     if (as_item) {
         mi = gtk_image_menu_item_new_with_label(name);
+        gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
         if (fname) {
             GtkWidget *img;
             char *expanded = expand_tilda(fname);
@@ -1147,7 +1157,8 @@ static gboolean apply_config(GtkWidget *p)
         gtk_misc_set_padding (GTK_MISC (m->icon), 0, 0);
         gtk_misc_set_alignment (GTK_MISC (m->icon), 0.5, 0.5);
         g_object_unref(pixbuf);
-        spacing += panel_get_icon_size(m->panel);
+        gtk_widget_size_request (m->icon, &req);
+        spacing += req.width + ICON_BUTTON_TRIM;
     }
     else gtk_image_set_from_pixbuf (GTK_IMAGE(m->icon), NULL);
 

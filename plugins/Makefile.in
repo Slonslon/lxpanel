@@ -157,6 +157,12 @@ am__v_lt_1 =
 batt_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(batt_la_CFLAGS) \
 	$(CFLAGS) $(batt_la_LDFLAGS) $(LDFLAGS) -o $@
+bluetooth_la_LIBADD =
+am_bluetooth_la_OBJECTS = bluetooth/bluetooth_la-bluetooth.lo
+bluetooth_la_OBJECTS = $(am_bluetooth_la_OBJECTS)
+bluetooth_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(bluetooth_la_CFLAGS) \
+	$(CFLAGS) $(bluetooth_la_LDFLAGS) $(LDFLAGS) -o $@
 cpu_la_LIBADD =
 am_cpu_la_OBJECTS = cpu/cpu.lo
 cpu_la_OBJECTS = $(am_cpu_la_OBJECTS)
@@ -300,7 +306,8 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(libbuiltin_plugins_a_SOURCES) $(batt_la_SOURCES) \
-	$(cpu_la_SOURCES) $(cpufreq_la_SOURCES) $(deskno_la_SOURCES) \
+	$(bluetooth_la_SOURCES) $(cpu_la_SOURCES) \
+	$(cpufreq_la_SOURCES) $(deskno_la_SOURCES) \
 	$(dhcpcdui_la_SOURCES) $(ejecter_la_SOURCES) \
 	$(indicator_la_SOURCES) $(kbled_la_SOURCES) \
 	$(monitors_la_SOURCES) $(netstat_la_SOURCES) \
@@ -308,14 +315,14 @@ SOURCES = $(libbuiltin_plugins_a_SOURCES) $(batt_la_SOURCES) \
 	$(volume_la_SOURCES) $(volumealsa_la_SOURCES) \
 	$(weather_la_SOURCES) $(xkb_la_SOURCES)
 DIST_SOURCES = $(am__libbuiltin_plugins_a_SOURCES_DIST) \
-	$(batt_la_SOURCES) $(cpu_la_SOURCES) $(cpufreq_la_SOURCES) \
-	$(deskno_la_SOURCES) $(dhcpcdui_la_SOURCES) \
-	$(ejecter_la_SOURCES) $(indicator_la_SOURCES) \
-	$(kbled_la_SOURCES) $(monitors_la_SOURCES) \
-	$(netstat_la_SOURCES) $(netstatus_la_SOURCES) \
-	$(thermal_la_SOURCES) $(volume_la_SOURCES) \
-	$(volumealsa_la_SOURCES) $(weather_la_SOURCES) \
-	$(xkb_la_SOURCES)
+	$(batt_la_SOURCES) $(bluetooth_la_SOURCES) $(cpu_la_SOURCES) \
+	$(cpufreq_la_SOURCES) $(deskno_la_SOURCES) \
+	$(dhcpcdui_la_SOURCES) $(ejecter_la_SOURCES) \
+	$(indicator_la_SOURCES) $(kbled_la_SOURCES) \
+	$(monitors_la_SOURCES) $(netstat_la_SOURCES) \
+	$(netstatus_la_SOURCES) $(thermal_la_SOURCES) \
+	$(volume_la_SOURCES) $(volumealsa_la_SOURCES) \
+	$(weather_la_SOURCES) $(xkb_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -559,7 +566,8 @@ EXTRA_LTLIBRARIES = \
 	weather.la \
 	xkb.la \
 	dhcpcdui.la \
-	ejecter.la
+	ejecter.la \
+	bluetooth.la
 
 
 # batt
@@ -704,6 +712,13 @@ ejecter_la_SOURCES = \
 
 ejecter_la_CFLAGS = -DPACKAGE_DATA_DIR=\""$(datadir)/lxpanel"\" -I$(srcdir)/ejecter -I/usr/local/include/gnome-disk-utility
 ejecter_la_LDFLAGS = -module @LXPANEL_MODULE@
+
+# bluetooth
+bluetooth_la_SOURCES = \
+	bluetooth/bluetooth.c
+
+bluetooth_la_CFLAGS = -DPACKAGE_DATA_DIR=\""$(datadir)/lxpanel"\" -I$(srcdir)/bluetooth
+bluetooth_la_LDFLAGS = -module @LXPANEL_MODULE@
 flagsdir = $(datadir)/lxpanel/images/xkb-flags
 flags_DATA = \
 	xkb/flags/ad.png \
@@ -953,6 +968,17 @@ batt/batt_la-batt_sys.lo: batt/$(am__dirstamp) \
 
 batt.la: $(batt_la_OBJECTS) $(batt_la_DEPENDENCIES) $(EXTRA_batt_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(batt_la_LINK)  $(batt_la_OBJECTS) $(batt_la_LIBADD) $(LIBS)
+bluetooth/$(am__dirstamp):
+	@$(MKDIR_P) bluetooth
+	@: > bluetooth/$(am__dirstamp)
+bluetooth/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) bluetooth/$(DEPDIR)
+	@: > bluetooth/$(DEPDIR)/$(am__dirstamp)
+bluetooth/bluetooth_la-bluetooth.lo: bluetooth/$(am__dirstamp) \
+	bluetooth/$(DEPDIR)/$(am__dirstamp)
+
+bluetooth.la: $(bluetooth_la_OBJECTS) $(bluetooth_la_DEPENDENCIES) $(EXTRA_bluetooth_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(bluetooth_la_LINK)  $(bluetooth_la_OBJECTS) $(bluetooth_la_LIBADD) $(LIBS)
 cpu/$(am__dirstamp):
 	@$(MKDIR_P) cpu
 	@: > cpu/$(am__dirstamp)
@@ -1177,6 +1203,8 @@ mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f batt/*.$(OBJEXT)
 	-rm -f batt/*.lo
+	-rm -f bluetooth/*.$(OBJEXT)
+	-rm -f bluetooth/*.lo
 	-rm -f cpu/*.$(OBJEXT)
 	-rm -f cpu/*.lo
 	-rm -f cpufreq/*.$(OBJEXT)
@@ -1224,6 +1252,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbuiltin_plugins_a-wincmd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@batt/$(DEPDIR)/batt_la-batt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@batt/$(DEPDIR)/batt_la-batt_sys.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bluetooth/$(DEPDIR)/bluetooth_la-bluetooth.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@cpu/$(DEPDIR)/cpu.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@cpufreq/$(DEPDIR)/cpufreq_la-cpufreq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@deskno/$(DEPDIR)/deskno.Plo@am__quote@
@@ -1428,6 +1457,13 @@ batt/batt_la-batt_sys.lo: batt/batt_sys.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='batt/batt_sys.c' object='batt/batt_la-batt_sys.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(batt_la_CFLAGS) $(CFLAGS) -c -o batt/batt_la-batt_sys.lo `test -f 'batt/batt_sys.c' || echo '$(srcdir)/'`batt/batt_sys.c
+
+bluetooth/bluetooth_la-bluetooth.lo: bluetooth/bluetooth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bluetooth_la_CFLAGS) $(CFLAGS) -MT bluetooth/bluetooth_la-bluetooth.lo -MD -MP -MF bluetooth/$(DEPDIR)/bluetooth_la-bluetooth.Tpo -c -o bluetooth/bluetooth_la-bluetooth.lo `test -f 'bluetooth/bluetooth.c' || echo '$(srcdir)/'`bluetooth/bluetooth.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) bluetooth/$(DEPDIR)/bluetooth_la-bluetooth.Tpo bluetooth/$(DEPDIR)/bluetooth_la-bluetooth.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bluetooth/bluetooth.c' object='bluetooth/bluetooth_la-bluetooth.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bluetooth_la_CFLAGS) $(CFLAGS) -c -o bluetooth/bluetooth_la-bluetooth.lo `test -f 'bluetooth/bluetooth.c' || echo '$(srcdir)/'`bluetooth/bluetooth.c
 
 cpufreq/cpufreq_la-cpufreq.lo: cpufreq/cpufreq.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cpufreq_la_CFLAGS) $(CFLAGS) -MT cpufreq/cpufreq_la-cpufreq.lo -MD -MP -MF cpufreq/$(DEPDIR)/cpufreq_la-cpufreq.Tpo -c -o cpufreq/cpufreq_la-cpufreq.lo `test -f 'cpufreq/cpufreq.c' || echo '$(srcdir)/'`cpufreq/cpufreq.c
@@ -1687,6 +1723,7 @@ mostlyclean-libtool:
 clean-libtool:
 	-rm -rf .libs _libs
 	-rm -rf batt/.libs batt/_libs
+	-rm -rf bluetooth/.libs bluetooth/_libs
 	-rm -rf cpu/.libs cpu/_libs
 	-rm -rf cpufreq/.libs cpufreq/_libs
 	-rm -rf deskno/.libs deskno/_libs
@@ -1863,6 +1900,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f batt/$(DEPDIR)/$(am__dirstamp)
 	-rm -f batt/$(am__dirstamp)
+	-rm -f bluetooth/$(DEPDIR)/$(am__dirstamp)
+	-rm -f bluetooth/$(am__dirstamp)
 	-rm -f cpu/$(DEPDIR)/$(am__dirstamp)
 	-rm -f cpu/$(am__dirstamp)
 	-rm -f cpufreq/$(DEPDIR)/$(am__dirstamp)
@@ -1906,7 +1945,7 @@ clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
 	clean-pkglibLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) batt/$(DEPDIR) cpu/$(DEPDIR) cpufreq/$(DEPDIR) deskno/$(DEPDIR) dhcpcd-gtk/$(DEPDIR) ejecter/$(DEPDIR) indicator/$(DEPDIR) kbled/$(DEPDIR) libdhcpcd/$(DEPDIR) monitors/$(DEPDIR) netstat/$(DEPDIR) netstatus/$(DEPDIR) thermal/$(DEPDIR) volume/$(DEPDIR) volumealsa/$(DEPDIR) weather/$(DEPDIR) xkb/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) batt/$(DEPDIR) bluetooth/$(DEPDIR) cpu/$(DEPDIR) cpufreq/$(DEPDIR) deskno/$(DEPDIR) dhcpcd-gtk/$(DEPDIR) ejecter/$(DEPDIR) indicator/$(DEPDIR) kbled/$(DEPDIR) libdhcpcd/$(DEPDIR) monitors/$(DEPDIR) netstat/$(DEPDIR) netstatus/$(DEPDIR) thermal/$(DEPDIR) volume/$(DEPDIR) volumealsa/$(DEPDIR) weather/$(DEPDIR) xkb/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1953,7 +1992,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) batt/$(DEPDIR) cpu/$(DEPDIR) cpufreq/$(DEPDIR) deskno/$(DEPDIR) dhcpcd-gtk/$(DEPDIR) ejecter/$(DEPDIR) indicator/$(DEPDIR) kbled/$(DEPDIR) libdhcpcd/$(DEPDIR) monitors/$(DEPDIR) netstat/$(DEPDIR) netstatus/$(DEPDIR) thermal/$(DEPDIR) volume/$(DEPDIR) volumealsa/$(DEPDIR) weather/$(DEPDIR) xkb/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) batt/$(DEPDIR) bluetooth/$(DEPDIR) cpu/$(DEPDIR) cpufreq/$(DEPDIR) deskno/$(DEPDIR) dhcpcd-gtk/$(DEPDIR) ejecter/$(DEPDIR) indicator/$(DEPDIR) kbled/$(DEPDIR) libdhcpcd/$(DEPDIR) monitors/$(DEPDIR) netstat/$(DEPDIR) netstatus/$(DEPDIR) thermal/$(DEPDIR) volume/$(DEPDIR) volumealsa/$(DEPDIR) weather/$(DEPDIR) xkb/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

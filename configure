@@ -1527,7 +1527,7 @@ Optional Packages:
                          plugins prefixed with '-' are not built
                          Possible plugins are:
                          netstatus, netstat, volume, volumealsa, cpu, deskno, batt,
-                         kbled, xkb, thermal, cpufreq, monitors, indicator, weather, dhcpcdui, ejecter
+                         kbled, xkb, thermal, cpufreq, monitors, indicator, weather, dhcpcdui, ejecter, bluetooth
 
   --with-x                use the X Window System
 
@@ -13154,6 +13154,7 @@ plugin_monitors=
 plugin_indicator=
 plugin_dhcpcdui=
 plugin_ejecter=
+plugin_bluetooth=
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking which plugins should be built dynamically" >&5
 $as_echo_n "checking which plugins should be built dynamically... " >&6; }
@@ -13172,7 +13173,7 @@ if test x"$plugins" != xall -a x"$plugins" != xnone; then
     fi
 fi
 
-ALL_PLUGINS_LIST="netstatus netstat volume volumealsa cpu deskno batt kbled xkb thermal cpufreq monitors indicator weather dhcpcdui ejecter"
+ALL_PLUGINS_LIST="netstatus netstat volume volumealsa cpu deskno batt kbled xkb thermal cpufreq monitors indicator weather dhcpcdui ejecter bluetooth"
 
 
 
@@ -13254,6 +13255,7 @@ PLUGINS_LIST="\
     $plugin_indicator \
     $plugin_dhcpcdui \
     $plugin_ejecter \
+    $plugin_bluetooth \
     $plugin_weather"
 
 
@@ -17509,6 +17511,10 @@ $as_echo "    dhcpcdui - WiFi network interface" >&6; }
     if test x"$plugin_ejecter" != x; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result:     ejecter - Ejects mounted drives" >&5
 $as_echo "    ejecter - Ejects mounted drives" >&6; }
+    fi
+    if test x"$plugin_bluetooth" != x; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result:     bluetooth - Manages Bluetooth devices" >&5
+$as_echo "    bluetooth - Manages Bluetooth devices" >&6; }
     fi
 else
 echo Dynamic loader for plugins....... : disabled.

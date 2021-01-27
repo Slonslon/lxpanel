@@ -51,6 +51,7 @@
 #include <gdk-pixbuf-xlib/gdk-pixbuf-xlib.h>
 #include <gdk/gdk.h>
 #include <glib/gi18n.h>
+#include <gio/gdesktopappinfo.h>
 
 #include <libfm/fm-gtk.h>
 
@@ -356,10 +357,14 @@ static gboolean launchbutton_press_event(GtkWidget * widget, GdkEventButton * ev
 
         if (event->button == 1 && event->type == GDK_BUTTON_PRESS) /* left button */
         {
+            /* deal with the case where the pointer was in the gap between two buttons */
+            if (ltbp->lastb == NULL) return TRUE;
+
             if (ltbp->lastb->fi == NULL)  /* The bootstrap button */
                 lxpanel_plugin_show_config_dialog(ltbp->lastb->p->plugin);
             else
                 lxpanel_launch_path(p, fm_file_info_get_path(ltbp->lastb->fi));
+            ltbp->lastb = NULL;
             return TRUE;
         }
         return FALSE;
@@ -513,6 +518,32 @@ static void launchbar_update_after_taskbar_class_removed(LaunchTaskBarPlugin *lt
 #endif
 }
 
+static void fix_pixbuf_alpha (GdkPixbuf *pb)
+{
+    guchar *pix = gdk_pixbuf_get_pixels (pb);
+
+    int x, y, r, g, b, a;
+    for (y = 0; y < gdk_pixbuf_get_height (pb); y++)
+    {
+        for (x = 0; x < gdk_pixbuf_get_width (pb); x++)
+        {
+            r = *pix++;
+            g = *pix++;
+            b = *pix++;
+            a = *pix++;
+
+            if (a > 0 && a < 255)
+            {
+                pix -= 4;
+                *pix++ = ((r * a / 255) + (255 - a));
+                *pix++ = ((g * a / 255) + (255 - a));
+                *pix++ = ((b * a / 255) + (255 - a));
+                pix++;
+            }
+        }
+    }
+}
+
 /* Build the graphic elements for a launchtaskbar button.  The desktop_id field is already established. */
 /* NOTE: this func consumes reference on fi */
 static LaunchButton *launchbutton_for_file_info(LaunchTaskBarPlugin * lb, FmFileInfo * fi)
@@ -523,6 +554,13 @@ static LaunchButton *launchbutton_for_file_info(LaunchTaskBarPlugin * lb, FmFile
     if (fi == NULL)
     {
         g_warning("launchbar: desktop entry does not exist\n");
+        return NULL;
+    }
+
+    // check that the application in the desktop file is valid
+    if (g_desktop_app_info_new (fm_file_info_get_name (fi)) == NULL)
+    {
+        g_warning("launchbar: application in desktop entry is not valid\n");
         return NULL;
     }
 
@@ -541,6 +579,10 @@ static LaunchButton *launchbutton_for_file_info(LaunchTaskBarPlugin * lb, FmFile
     GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
 
     GtkWidget * image = _gtk_image_new_for_icon (fm_file_info_get_icon (fi), lb->icon_size - ICON_BUTTON_TRIM);
+
+    GdkPixbuf *pb = gtk_image_get_pixbuf (GTK_IMAGE(image));
+    fix_pixbuf_alpha (pb);
+
     gtk_misc_set_padding (GTK_MISC (image), 0, 0);
     gtk_misc_set_alignment (GTK_MISC (image), 0.5, 0.5);
 
@@ -1522,7 +1564,7 @@ static void launchtaskbar_panel_configuration_changed(LXPanel *panel, GtkWidget 
             {
                 gtk_image_set_from_pixbuf(GTK_IMAGE(tk->image), pixbuf);
                 gtk_misc_set_alignment (GTK_MISC(tk->image), 0.5, 0.5);
-                gtk_misc_set_padding (GTK_MISC(tk->image), 0, 0);
+                gtk_misc_set_padding (GTK_MISC(tk->image), 2, 0);
                 g_object_unref(pixbuf);
             }
         }
@@ -2296,6 +2338,7 @@ static GdkPixbuf * get_wm_icon(Window task_win, guint required_width, guint requ
     else
     {
         GdkPixbuf * ret = gdk_pixbuf_scale_simple(pixmap, required_width, required_height, GDK_INTERP_TILES);
+        fix_pixbuf_alpha (ret);
         g_object_unref(pixmap);
         *current_source = possible_source;
         return ret;
@@ -2499,6 +2542,7 @@ static gboolean taskbar_task_control_event(GtkWidget * widget, GdkEventButton * 
                      * the icon of the application window. */
                     GtkWidget * mi = gtk_image_menu_item_new_with_label(((tk_cursor->iconified) ?
                                 tk_cursor->name_iconified : tk_cursor->name));
+                    gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (mi), TRUE);
                     GtkWidget * im = gtk_image_new_from_pixbuf(gtk_image_get_pixbuf(
                                 GTK_IMAGE(tk_cursor->image)));
                     gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(mi), im);
@@ -2854,7 +2898,7 @@ static void task_build_gui(LaunchTaskBarPlugin * tb, Task * tk)
     /* Create an image to contain the application icon and add it to the box. */
     GdkPixbuf* pixbuf = task_update_icon(tb, tk, None);
     tk->image = gtk_image_new_from_pixbuf(pixbuf);
-    gtk_misc_set_padding(GTK_MISC(tk->image), 0, 0);
+    gtk_misc_set_padding(GTK_MISC(tk->image), 2, 0);
     gtk_misc_set_alignment(GTK_MISC(tk->image), 0.5, 0.5);
     g_object_unref(pixbuf);
     gtk_widget_show(tk->image);
@@ -2869,7 +2913,7 @@ static void task_build_gui(LaunchTaskBarPlugin * tb, Task * tk)
     /* Add the box to the button. */
     gtk_container_add(GTK_CONTAINER(tk->button), container);
     gtk_container_set_border_width(GTK_CONTAINER(tk->button), 0);
-    gtk_misc_set_alignment (GTK_MISC (tk->button), 0.5, 0.5);
+    //gtk_misc_set_alignment (GTK_MISC (tk->button), 0.5, 0.5);
 
     /* Add the button to the taskbar. */
     gtk_container_add(GTK_CONTAINER(tb->tb_icon_grid), tk->button);

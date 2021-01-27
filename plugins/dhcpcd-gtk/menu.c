@@ -1,6 +1,6 @@
 /*
  * dhcpcd-gtk
- * Copyright 2009-2014 Roy Marples <roy@marples.name>
+ * Copyright 2009-2015 Roy Marples <roy@marples.name>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,14 +28,12 @@
 #include "dhcpcd-gtk.h"
 
 #if 0
-static const char *copyright = "Copyright (c) 2009-2014 Roy Marples";
+static const char *copyright = "Copyright (c) 2009-2015 Roy Marples";
 
 static GtkStatusIcon *sicon;
 static GtkWidget *menu;
 static GtkAboutDialog *about;
-#ifdef BG_SCAN
 static guint bgscan_timer;
-#endif
 
 static void
 on_pref(_unused GObject *o, gpointer data)
@@ -68,6 +66,27 @@ wi_scan_find(DHCPCD_WI_SCAN *scan, GtkWidget *p)
     return NULL;
 }
 
+static void disconnect_prompt (DHCPCD_WPA *wpa, DHCPCD_WI_SCAN *scan)
+{
+    GtkWidget *dlg, *lbl;
+    char buffer[256];
+    int res;
+
+    sprintf (buffer, _("Do you want to disconnect from the Wi-Fi network '%s'?"), scan->ssid);
+    dlg = gtk_dialog_new_with_buttons (_("Disconnect Wi-Fi Network"), NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_CANCEL, 0, GTK_STOCK_OK, 1, NULL);
+    lbl = gtk_label_new (buffer);
+    gtk_label_set_line_wrap (GTK_LABEL (lbl), TRUE);
+    gtk_label_set_justify (GTK_LABEL (lbl), GTK_JUSTIFY_LEFT);
+    gtk_misc_set_alignment (GTK_MISC (lbl), 0.0, 0.0);
+    gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dlg))), lbl , TRUE, TRUE, 0);
+    gtk_widget_show_all (dlg);
+
+    // block while waiting for user response
+    res = gtk_dialog_run (GTK_DIALOG (dlg));
+    gtk_widget_destroy (dlg);
+    if (res) wpa_disconnect(wpa, scan);
+}
+
 static void
 ssid_hook(GtkMenuItem *item, GtkWidget *p)
 {
@@ -85,7 +104,12 @@ ssid_hook(GtkMenuItem *item, GtkWidget *p)
 
             wpa = dhcpcd_wpa_find(con, wi->interface->ifname);
             if (wpa)
-                wpa_configure(wpa, scan);
+            {
+                if (dhcpcd_wi_associated(wi->interface, scan))
+                    disconnect_prompt (wpa, scan);
+                else
+                    wpa_configure(wpa, scan);
+            }
         }
     }
 }
@@ -117,6 +141,24 @@ is_associated(WI_SCAN *wi, DHCPCD_WI_SCAN *scan)
 {
 
     return dhcpcd_wi_associated(wi->interface, scan);
+}
+
+static bool
+get_security_icon(int flags, const char **icon)
+{
+	bool active;
+
+	active = true;
+	if (flags & WSF_SECURE) {
+		if (flags & WSF_PSK)
+			*icon = "network-wireless-encrypted";
+		else {
+			*icon = "network-error";
+			active = false;
+		}
+	} else
+		*icon = "";
+	return active;
 }
 
 static void
@@ -162,10 +204,12 @@ create_menu(WI_SCAN *wis, DHCPCD_WI_SCAN *scan, GtkWidget *p)
     WI_MENU *wim;
     GtkWidget *box;
     const char *icon;
+    bool active;
 
     wim = g_malloc(sizeof(*wim));
     wim->scan = scan;
     wim->menu = gtk_image_menu_item_new();
+    gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (wim->menu), TRUE);
     box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
     gtk_container_add(GTK_CONTAINER(wim->menu), box);
 
@@ -174,7 +218,8 @@ create_menu(WI_SCAN *wis, DHCPCD_WI_SCAN *scan, GtkWidget *p)
     gtk_box_pack_start(GTK_BOX(box), wim->ssid, TRUE, TRUE, 0);
 
     wim->icon = gtk_image_new ();
-    if (scan->flags & WSF_SECURE) set_icon (dhcp->panel, wim->icon, "network-wireless-encrypted", 16);
+    active = get_security_icon (scan->flags, &icon);
+    set_icon (dhcp->panel, wim->icon, icon, 16);
     gtk_box_pack_start(GTK_BOX(box), wim->icon, FALSE, FALSE, 0);
 
     wim->strength = gtk_image_new ();
@@ -185,12 +230,17 @@ create_menu(WI_SCAN *wis, DHCPCD_WI_SCAN *scan, GtkWidget *p)
     if (scan->wpa_flags[0] == '\0')
         gtk_widget_set_tooltip_text(wim->menu, scan->bssid);
     else {
-        char *tip = g_strconcat(scan->bssid, " ", scan->wpa_flags, NULL);
+        char *tip;
+
+        tip = g_strconcat(scan->bssid, " ", scan->wpa_flags, NULL);
         gtk_widget_set_tooltip_text(wim->menu, tip);
         g_free(tip);
     }
 #endif
     update_item(wis, wim, scan, dhcp);
+
+    if (gtk_widget_get_sensitive (wim->menu) != active)
+        gtk_widget_set_sensitive (wim->menu, active);
 
     g_signal_connect(G_OBJECT(wim->menu), "activate",
         G_CALLBACK(ssid_hook), p);
@@ -311,7 +361,7 @@ add_scans(WI_SCAN *wi, GtkWidget *p)
     {
         m = gtk_menu_new ();
         wi->noap = gtk_menu_item_new_with_label (_("No APs found - scanning..."));
-	gtk_widget_set_sensitive (wi->noap, FALSE);
+        gtk_widget_set_sensitive (wi->noap, FALSE);
         gtk_menu_shell_append(GTK_MENU_SHELL(m), wi->noap);
         return m;
     }
@@ -355,12 +405,10 @@ menu_abort(DHCPCDUIPlugin *data)
     WI_SCAN *wis;
     WI_MENU *wim;
 
-#ifdef BG_SCAN
     if (data->bgscan_timer) {
         g_source_remove(data->bgscan_timer);
         data->bgscan_timer = 0;
     }
-#endif
 
     TAILQ_FOREACH(wis, &data->wi_scans, next) {
         wis->ifmenu = NULL;
@@ -380,7 +428,6 @@ menu_abort(DHCPCDUIPlugin *data)
     }
 }
 
-#ifdef BG_SCAN
 static gboolean
 menu_bgscan(gpointer data)
 {
@@ -396,14 +443,15 @@ menu_bgscan(gpointer data)
     TAILQ_FOREACH(w, &dhcp->wi_scans, next) {
         if (dhcpcd_is_wireless(w->interface)) {
             wpa = dhcpcd_wpa_find(dhcpcd_if_connection (w->interface), w->interface->ifname);
-            if (wpa)
+            if (wpa &&
+                (!w->interface->up ||
+                dhcpcd_wpa_can_background_scan(wpa)))
                 dhcpcd_wpa_scan(wpa);
         }
     }
 
     return TRUE;
 }
-#endif
 
 static void dhcpcdui_popup_set_position(GtkMenu * menu, gint * px, gint * py, gboolean * push_in, gpointer data)
 {
@@ -414,7 +462,31 @@ static void dhcpcdui_popup_set_position(GtkMenu * menu, gint * px, gint * py, gb
     *push_in = TRUE;
 }
 
+static int wifi_enabled (void)
+{
+    FILE *fp;
 
+    // is rfkill installed?
+    fp = popen ("test -e /usr/sbin/rfkill", "r");
+    if (pclose (fp)) return -2;
+
+    // is there wifi hardware that rfkill can see?
+    fp = popen ("/usr/sbin/rfkill list wifi | grep -q blocked", "r");
+    if (pclose (fp)) return -1;
+
+    // is rfkill blocking wifi?
+    fp = popen ("/usr/sbin/rfkill list wifi | grep -q 'Soft blocked: no'", "r");
+    if (!pclose (fp)) return 1;
+    return 0;
+}
+
+static void toggle_wifi (_unused GObject *o, _unused gpointer data)
+{
+    if (wifi_enabled ())
+        system ("sudo /usr/sbin/rfkill block wifi");
+    else
+        system ("sudo /usr/sbin/rfkill unblock wifi");
+}
 
 void
 menu_show (DHCPCDUIPlugin *data)
@@ -427,6 +499,26 @@ menu_show (DHCPCDUIPlugin *data)
     prefs_abort(data);
     menu_abort(data);
 
+    int wifi_state = wifi_enabled ();
+
+    if (wifi_state == -1)
+    {
+        // rfkill is installed, but no hardware found
+        data->menu = gtk_menu_new ();
+        item = gtk_menu_item_new_with_label (_("No wireless interfaces found"));
+        gtk_widget_set_sensitive (item, FALSE);
+        gtk_menu_shell_append (GTK_MENU_SHELL (data->menu), item);
+    }
+    else if (wifi_state == 0)
+    {
+        // rfkill installed, h/w found, disabled
+        data->menu = gtk_menu_new ();
+        item = gtk_menu_item_new_with_label (_("Turn On Wi-Fi"));
+        g_signal_connect (G_OBJECT(item), "activate", G_CALLBACK (toggle_wifi), NULL);
+        gtk_menu_shell_append (GTK_MENU_SHELL (data->menu), item);
+    }
+    else
+    {
     if ((w = TAILQ_FIRST(&data->wi_scans)) == NULL)
     {
         data->menu = gtk_menu_new ();
@@ -434,12 +526,14 @@ menu_show (DHCPCDUIPlugin *data)
         gtk_widget_set_sensitive (item, FALSE);
         gtk_menu_shell_append (GTK_MENU_SHELL(data->menu), item);
     }
-
-    else if ((l = TAILQ_LAST(&data->wi_scans, wi_scan_head)) && l != w) {
+    else
+    {
+    if ((l = TAILQ_LAST(&data->wi_scans, wi_scan_head)) && l != w) {
         data->menu = gtk_menu_new();
         TAILQ_FOREACH(w, &data->wi_scans, next) {
             item = gtk_image_menu_item_new_with_label(
                 w->interface->ifname);
+            gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (item), TRUE);
             image = gtk_image_new ();
             set_icon (data->panel, image, "network-wireless", 16);
             gtk_image_menu_item_set_image(
@@ -451,6 +545,18 @@ menu_show (DHCPCDUIPlugin *data)
         }
     } else {
         w->ifmenu = data->menu = add_scans(w, data->plugin);
+    }
+
+            if (wifi_state == 1)
+            {
+                // rfkill installed, h/w found, enabled
+                item = gtk_separator_menu_item_new ();
+                gtk_menu_shell_prepend (GTK_MENU_SHELL (data->menu), item);
+                item = gtk_menu_item_new_with_label (_("Turn Off Wi-Fi"));
+                g_signal_connect (G_OBJECT(item), "activate", G_CALLBACK (toggle_wifi), NULL);
+                gtk_menu_shell_prepend (GTK_MENU_SHELL (data->menu), item);
+            }
+        }
     }
 
     if (data->menu) {
@@ -484,17 +590,18 @@ on_activate(GtkStatusIcon *icon)
 
     if ((l = TAILQ_LAST(&wi_scans, wi_scan_head)) && l != w) {
         menu = gtk_menu_new();
-        TAILQ_FOREACH(w, &wi_scans, next) {
+        TAILQ_FOREACH(l, &wi_scans, next) {
             item = gtk_image_menu_item_new_with_label(
-                w->interface->ifname);
+                l->interface->ifname);
+            gtk_image_menu_item_set_always_show_image (GTK_IMAGE_MENU_ITEM (item), TRUE);
             image = gtk_image_new_from_icon_name(
                 "network-wireless", GTK_ICON_SIZE_MENU);
             gtk_image_menu_item_set_image(
                 GTK_IMAGE_MENU_ITEM(item), image);
             gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
-            w->ifmenu = add_scans(w);
+            l->ifmenu = add_scans(l);
             gtk_menu_item_set_submenu(GTK_MENU_ITEM(item),
-                w->ifmenu);
+                l->ifmenu);
         }
     } else {
         w->ifmenu = menu = add_scans(w);
@@ -506,10 +613,8 @@ on_activate(GtkStatusIcon *icon)
             gtk_status_icon_position_menu, icon,
             1, gtk_get_current_event_time());
 
-#ifdef BG_SCAN
         bgscan_timer = g_timeout_add(DHCPCD_WPA_SCAN_SHORT,
             menu_bgscan, NULL);
-#endif
     }
 }
 
@@ -529,7 +634,7 @@ on_popup(GtkStatusIcon *icon, guint button, guint32 atime, gpointer data)
     image = gtk_image_new_from_icon_name("preferences-system-network",
         GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), image);
-    if (g_strcmp0(dhcpcd_status(con), "down") == 0)
+    if (dhcpcd_status(con, NULL) == DHC_DOWN)
         gtk_widget_set_sensitive(item, false);
     else
         g_signal_connect(G_OBJECT(item), "activate",

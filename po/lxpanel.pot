@@ -1,66 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: LxPanel\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-08-31 14:57+0100\n"
-"PO-Revision-Date: 2012-10-24 14:43+0200\n"
-"Last-Translator: Simon Long <simon@raspberrypi.org>\n"
-"Language-Team: English UK en_GB <yorvik.ubunto@googlemail.com>\n"
-"Language: en_GB\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.0.5\n"
-"X-Poedit-Language: English\n"
-"X-Poedit-SourceCharset: utf-8\n"
-"X-Poedit-Country: UNITED KINGDOM\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #. { "configure", N_("Preferences"), configure },
 #: ../src/configurator.c:50 ../src/gtk-run.c:377 ../plugins/menu.c:854
 msgid "Run"
-msgstr "Run"
+msgstr ""
 
 #: ../src/configurator.c:51 ../plugins/menu.c:855
 msgid "Restart"
-msgstr "Restart"
+msgstr ""
 
 #: ../src/configurator.c:52 ../plugins/menu.c:856
 msgid "Logout"
-msgstr "Logout"
+msgstr ""
 
 #: ../src/configurator.c:558
 msgid "Currently loaded plugins"
-msgstr "Currently loaded plugins"
+msgstr ""
 
 #: ../src/configurator.c:567
 msgid "Stretch"
-msgstr "Stretch"
+msgstr ""
 
 #: ../src/configurator.c:689
 msgid "Add plugin to panel"
-msgstr "Add plugin to panel"
+msgstr ""
 
 #: ../src/configurator.c:717
 msgid "Available plugins"
-msgstr "Available plugins"
+msgstr ""
 
 #: ../src/configurator.c:1272
 msgid "Logout command is not set"
-msgstr "Logout command is not set"
+msgstr ""
 
 #: ../src/configurator.c:1364
 msgid "Select a directory"
-msgstr "Select a directory"
+msgstr ""
 
 #: ../src/configurator.c:1364 ../src/configurator.c:1488
 msgid "Select a file"
-msgstr "Select a file"
+msgstr ""
 
 #: ../src/configurator.c:1541
 msgid "_Browse"
-msgstr "_Browse"
+msgstr ""
 
 #: ../src/panel.c:1030
 msgid "There is no room for another panel. All the edges are taken."
@@ -71,129 +72,127 @@ msgid ""
 "Really delete this panel?\n"
 "<b>Warning: This can not be recovered.</b>"
 msgstr ""
-"Really delete this panel?\n"
-"<b>WARNING: This can not be recovered.</b>"
 
 #: ../src/panel.c:1059
 msgid "Confirm"
-msgstr "Confirm"
+msgstr ""
 
 #. TRANSLATORS: Replace this string with your names, one name per line.
 #: ../src/panel.c:1094
 msgid "translator-credits"
-msgstr "translator-credits"
+msgstr ""
 
 #: ../src/panel.c:1099
 msgid "LXPanel"
-msgstr "LXPanel"
+msgstr ""
 
 #: ../src/panel.c:1117
 msgid "Copyright (C) 2008-2014"
-msgstr "Copyright © 2008-2014"
+msgstr ""
 
 #: ../src/panel.c:1118
 msgid "Desktop panel for LXDE project"
-msgstr "Desktop panel for LXDE project"
+msgstr ""
 
 #: ../src/panel.c:1160
 #, c-format
 msgid "%s Settings"
-msgstr "%s Settings"
+msgstr ""
 
 #: ../src/panel.c:1180
 msgid "Add / Remove Panel Items"
-msgstr "Add / Remove Panel Items"
+msgstr ""
 
 #: ../src/panel.c:1188
 #, c-format
 msgid "Remove \"%s\" From Panel"
-msgstr "Remove \"%s\" From Panel"
+msgstr ""
 
 #: ../src/panel.c:1200
 msgid "Panel Settings"
-msgstr "Panel Settings"
+msgstr ""
 
 #: ../src/panel.c:1206
 msgid "Create New Panel"
-msgstr "Create New Panel"
+msgstr ""
 
 #: ../src/panel.c:1212
 msgid "Delete This Panel"
-msgstr "Delete This Panel"
+msgstr ""
 
 #: ../src/panel.c:1223
 msgid "About"
-msgstr "About"
+msgstr ""
 
 #: ../src/panel.c:1230
 msgid "Panel"
-msgstr "Panel"
+msgstr ""
 
 #: ../src/panel.c:1415 ../src/panel.c:1423 ../data/ui/panel-pref.glade.h:22
 msgid "Height:"
-msgstr "Height:"
+msgstr ""
 
 #: ../src/panel.c:1416 ../src/panel.c:1422 ../data/ui/panel-pref.glade.h:21
 msgid "Width:"
-msgstr "Width:"
+msgstr ""
 
 #: ../src/panel.c:1417 ../data/ui/panel-pref.glade.h:13
 msgid "Left"
-msgstr "Left"
+msgstr ""
 
 #: ../src/panel.c:1418 ../data/ui/panel-pref.glade.h:14
 msgid "Right"
-msgstr "Right"
+msgstr ""
 
 #: ../src/panel.c:1424 ../data/ui/panel-pref.glade.h:12
 msgid "Top"
-msgstr "Top"
+msgstr ""
 
 #: ../src/panel.c:1425 ../data/ui/panel-pref.glade.h:11
 msgid "Bottom"
-msgstr "Bottom"
+msgstr ""
 
 #: ../src/panel.c:1710
 #, c-format
 msgid "lxpanel %s - lightweight GTK2+ panel for UNIX desktops\n"
-msgstr "lxpanel %s - lightweight GTK2+ panel for Linux & UNIX desktops\n"
+msgstr ""
 
 #: ../src/panel.c:1711
 #, c-format
 msgid "Command line options:\n"
-msgstr "Command line options:\n"
+msgstr ""
 
 #: ../src/panel.c:1712
 #, c-format
 msgid " --help      -- print this help and exit\n"
-msgstr " --help      -- print this help and exit\n"
+msgstr ""
 
 #: ../src/panel.c:1713
 #, c-format
 msgid " --version   -- print version and exit\n"
-msgstr " --version   -- print version and exit\n"
+msgstr ""
 
 #. g_print(_(" --log <number> -- set log level 0-5. 0 - none 5 - chatty\n"));
 #. g_print(_(" --configure -- launch configuration utility\n"));
 #: ../src/panel.c:1716
 #, c-format
 msgid " --profile name -- use specified profile\n"
-msgstr " --profile name -- use specified profile\n"
+msgstr ""
 
 #: ../src/panel.c:1718
 #, c-format
 msgid " -h  -- same as --help\n"
-msgstr " -h  -- same as --help\n"
+msgstr ""
 
 #: ../src/panel.c:1719
 #, c-format
 msgid " -p  -- same as --profile\n"
-msgstr " -p  -- same as --profile\n"
+msgstr ""
 
 #: ../src/panel.c:1720
 #, c-format
 msgid " -v  -- same as --version\n"
-msgstr " -v  -- same as --version\n"
+msgstr ""
 
 #. g_print(_(" -C  -- same as --configure\n"));
 #: ../src/panel.c:1722
@@ -203,9 +202,6 @@ msgid ""
 "Visit http://lxde.org/ for detail.\n"
 "\n"
 msgstr ""
-"\n"
-"Visit http://lxde.org/ for details.\n"
-"\n"
 
 #: ../src/plugin.c:389
 msgid "No file manager is configured."
@@ -213,44 +209,41 @@ msgstr ""
 
 #: ../src/gtk-run.c:391
 msgid "Enter the command you want to execute:"
-msgstr "Enter the command you want to execute:"
+msgstr ""
 
 #. vim: set sw=4 et sts=4 ts=4 :
 #: ../data/ui/launchtaskbar.glade.h:1 ../plugins/launchtaskbar.c:3562
-#, fuzzy
 msgid "Application Launch and Task Bar"
-msgstr "Application Launch Bar"
+msgstr ""
 
 #. Launchtaskbar mode: launchbar, taskbar, or combined
 #: ../data/ui/launchtaskbar.glade.h:3
-#, fuzzy
 msgid "<b>Mode:</b>"
-msgstr "<b>Size</b>"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:4
 msgid "Launchers"
 msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:5
-#, fuzzy
 msgid "<b>Launchbar</b>"
-msgstr "<b>Background</b>"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:6
 msgid "Show tooltips"
-msgstr "Show tooltips"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:7
 msgid "Icons only"
-msgstr "Icons only"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:8
 msgid "Flat buttons"
-msgstr "Flat buttons"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:9
 msgid "Show windows from all desktops"
-msgstr "Show windows from all desktops"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:10
 msgid "Only show windows on the same monitor as the task bar"
@@ -258,392 +251,388 @@ msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:11
 msgid "Use mouse wheel"
-msgstr "Use mouse wheel"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:12
 msgid "Flash when there is any window requiring attention"
-msgstr "Flash when there is a window requiring attention"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:13
 msgid "Combine multiple application windows into a single button"
-msgstr "Combine multiple application windows into a single button"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:14
 msgid "Maximum width of task button"
-msgstr "Maximum width of task button"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:15
 msgid "Spacing"
-msgstr "Spacing"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:16
-#, fuzzy
 msgid "<b>Taskbar</b>"
-msgstr "<b>Background</b>"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:17
-#, fuzzy
 msgid "Only Application Launch Bar"
-msgstr "Application Launch Bar"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:18
-#, fuzzy
 msgid "Only Task Bar (Window List)"
-msgstr "Task Bar (Window List)"
+msgstr ""
 
 #: ../data/ui/launchtaskbar.glade.h:19
-#, fuzzy
 msgid "Integrated Application Launch Bar and Task Bar"
-msgstr "Application Launch Bar"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:1
 msgid "<b>Connection</b>"
-msgstr "<b>Connection</b>"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:2
 msgid "Status:"
-msgstr "Status:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:3
 msgid "_Name:"
-msgstr "_Name:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:4
 msgid "<b>Activity</b>"
-msgstr "<b>Activity</b>"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:5
 msgid "Received:"
-msgstr "Received:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:6
 msgid "Sent:"
-msgstr "Sent:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:7
 msgid "<b>Signal Strength</b>"
-msgstr "<b>Signal Strength</b>"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:9
 #, no-c-format
 msgid "0%"
-msgstr "0%"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:10
 msgid "General"
-msgstr "General"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:11
 msgid "<b>Internet Protocol (IPv4)</b>"
-msgstr "<b>Internet Protocol (IPv4)</b>"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:12
 msgid "Address:"
-msgstr "Address:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:13
 msgid "Destination:"
-msgstr "Destination:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:14 ../plugins/netstat/netstat.c:360
 #: ../plugins/netstat/netstat.c:371
 msgid "Broadcast:"
-msgstr "Broadcast:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:15
 msgid "Subnet Mask:"
-msgstr "Subnet Mask:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:16
 msgid "<b>Internet Protocol (IPv6)</b>"
-msgstr "<b>Internet Protocol (IPv6)</b>"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:17
 msgid "Scope:"
-msgstr "Scope:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:18
 msgid "<b>Network Device</b>"
-msgstr "<b>Network Device</b>"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:19
 msgid "Type:"
-msgstr "Type:"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:20
 msgid "Support"
-msgstr "Support"
+msgstr ""
 
 #: ../data/ui/netstatus.glade.h:21
 msgid "Con_figure"
-msgstr "Con_figure"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:1
 msgid "Dynamic"
-msgstr "Dynamic"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:2
 msgid "Pixels"
-msgstr "Pixels"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:4
 #, no-c-format
 msgid "% Percent"
-msgstr "% Percent"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:5
 msgid "None"
-msgstr "None"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:6
 msgid "Err"
-msgstr "Error"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:7
 msgid "Warn"
-msgstr "Warn"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:8
 msgid "Info"
-msgstr "Information"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:9
 msgid "All"
-msgstr "All"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:10
 msgid "Panel Preferences"
-msgstr "Panel Preferences"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:15
 msgid "Edge:"
-msgstr "Edge:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:16
 msgid "Center"
-msgstr "Centre"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:17
 msgid "Alignment:"
-msgstr "Alignment:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:18
 msgid "Margin:"
-msgstr "Margin:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:19
 msgid "Monitor:"
-msgstr "Monitor:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:20
 msgid "<b>Position</b>"
-msgstr "<b>Position</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:23
 msgid "Icon size:"
-msgstr "Icon size:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:24
 msgid "<b>Size</b>"
-msgstr "<b>Size</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:25
 msgid "Geometry"
-msgstr "Geometry"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:26
 msgid "System theme"
-msgstr "System theme"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:27
 msgid "Solid color (with opacity)"
-msgstr "Solid colour (with opacity)"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:28 ../plugins/xkb/xkb-plugin.c:1447
 msgid "Image"
-msgstr "Image"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:29
 msgid "Select an image file"
-msgstr "Select an image file"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:30
 msgid "<b>Background</b>"
-msgstr "<b>Background</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:31
 msgid "Custom color"
-msgstr "Custom colour"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:32 ../plugins/space.c:88
 #: ../plugins/batt/batt.c:651
 msgid "Size"
-msgstr "Size"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:33
 msgid "<b>Font</b>"
-msgstr "<b>Font</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:34
 msgid "Appearance"
-msgstr "Appearance"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:35
 msgid "Panel Applets"
-msgstr "Panel Applets"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:36
 msgid "Logout Command:"
-msgstr "Logout Command:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:37
 msgid "Terminal Emulator:"
-msgstr "Terminal Emulator:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:38
 msgid "File Manager:"
-msgstr "File Manager:"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:39
 msgid "<b>Set Preferred Applications</b>"
-msgstr "<b>Set Preferred Applications</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:40
 msgid "Make window managers treat the panel as dock"
-msgstr "Make window managers treat the panel as dock"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:41
 msgid "Reserve space, and not covered by maximized windows"
-msgstr "Reserve space, and not covered by maximised windows"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:42
 msgid "<b>Properties</b>"
-msgstr "<b>Properties</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:43
 msgid "Minimize panel when not in use"
-msgstr "Minimise panel when not in use"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:44
 msgid "Size when minimized"
-msgstr "Size when minimised"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:45
 msgid "pixels"
-msgstr "pixels"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:46
 msgid "<b>Automatic hiding</b>"
-msgstr "<b>Automatic hiding</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:47
 msgid "Log level"
-msgstr "Log level"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:48
 msgid "<b>Log level</b>"
-msgstr "<b>Log level</b>"
+msgstr ""
 
 #: ../data/ui/panel-pref.glade.h:49
 msgid "Advanced"
-msgstr "Advanced"
+msgstr ""
 
 #: ../plugins/cpu/cpu.c:333
 msgid "CPU Usage"
-msgstr "CPU Usage"
+msgstr ""
 
 #: ../plugins/cpu/cpu.c:335
 msgid "Show usage as percentage"
-msgstr "Show usage as percentage"
+msgstr ""
 
 #: ../plugins/cpu/cpu.c:336
 msgid "Foreground colour"
-msgstr "Foreground colour"
+msgstr ""
 
 #: ../plugins/cpu/cpu.c:337
 msgid "Background colour"
-msgstr "Background colour"
+msgstr ""
 
 #: ../plugins/cpu/cpu.c:345
 msgid "CPU Usage Monitor"
-msgstr "CPU Usage Monitor"
+msgstr ""
 
 #: ../plugins/cpu/cpu.c:347 ../plugins/monitors/monitors.c:699
 msgid "Display CPU usage"
-msgstr "Display CPU usage"
+msgstr ""
 
 #: ../plugins/deskno/deskno.c:174 ../plugins/deskno/deskno.c:194
 msgid "Desktop Number / Workspace Name"
-msgstr "Desktop Number / Workspace Name"
+msgstr ""
 
 #: ../plugins/deskno/deskno.c:176
 msgid "Bold font"
-msgstr "Bold font"
+msgstr ""
 
 #: ../plugins/deskno/deskno.c:177
 msgid "Display desktop names"
-msgstr "Display desktop names"
+msgstr ""
 
 #: ../plugins/deskno/deskno.c:195
 msgid "Display workspace number, by cmeury@users.sf.net"
-msgstr "Display workspace number, by cmeury@users.sf.net"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:1478 ../plugins/launchtaskbar.c:3533
 msgid "Application Launch Bar"
-msgstr "Application Launch Bar"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:1481 ../plugins/launchtaskbar.c:3543
 msgid "Task Bar (Window List)"
-msgstr "Task Bar (Window List)"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:2518
 msgid "_Close all windows"
-msgstr "_Close all windows"
+msgstr ""
 
 #. Add Raise menu item.
 #: ../plugins/launchtaskbar.c:3392
 msgid "_Raise"
-msgstr "_Raise"
+msgstr ""
 
 #. Add Restore menu item.
 #: ../plugins/launchtaskbar.c:3397
 msgid "R_estore"
-msgstr "R_estore"
+msgstr ""
 
 #. Add Maximize menu item.
 #: ../plugins/launchtaskbar.c:3402
 msgid "Ma_ximize"
-msgstr "Ma_ximise"
+msgstr ""
 
 #. Add Iconify menu item.
 #: ../plugins/launchtaskbar.c:3407
 msgid "Ico_nify"
-msgstr "Mi_nimise"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:3426
 #, c-format
 msgid "Workspace _%d"
-msgstr "Workspace _%d"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:3431
 #, c-format
 msgid "Workspace %d"
-msgstr "Workspace %d"
+msgstr ""
 
 #. Add "move to all workspaces" item.  This causes the window to be visible no matter what desktop is active.
 #: ../plugins/launchtaskbar.c:3447
 msgid "_All workspaces"
-msgstr "_All workspaces"
+msgstr ""
 
 #. Add Move to Workspace menu item as a submenu.
 #: ../plugins/launchtaskbar.c:3453
 msgid "_Move to Workspace"
-msgstr "_Move to Workspace"
+msgstr ""
 
 #. Add Close menu item.  By popular demand, we place this menu item closest to the cursor.
 #: ../plugins/launchtaskbar.c:3459
 msgid "_Close Window"
-msgstr "_Close Window"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:3461
 msgid "A_dd to Launcher"
@@ -651,7 +640,7 @@ msgstr ""
 
 #: ../plugins/launchtaskbar.c:3462
 msgid "Rem_ove from Launcher"
-msgstr "Rem_ove from Launcher"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:3463
 msgid "_New Instance"
@@ -659,127 +648,124 @@ msgstr ""
 
 #: ../plugins/launchtaskbar.c:3534
 msgid "Bar with buttons to launch application"
-msgstr "Bar with buttons to launch application"
+msgstr ""
 
 #: ../plugins/launchtaskbar.c:3544
 msgid ""
 "Taskbar shows all opened windows and allow to iconify them, shade or get "
 "focus"
 msgstr ""
-"Taskbar shows all opened windows and allow to iconify them, shade or get "
-"focus"
 
 #: ../plugins/launchtaskbar.c:3563
-#, fuzzy
 msgid "Bar with buttons to launch application and/or show all opened windows"
-msgstr "Bar with buttons to launch application"
+msgstr ""
 
 #: ../plugins/dclock.c:632 ../plugins/dclock.c:655
 msgid "Digital Clock"
-msgstr "Digital Clock"
+msgstr ""
 
 #: ../plugins/dclock.c:634
 msgid "Clock Format"
-msgstr "Clock Format"
+msgstr ""
 
 #: ../plugins/dclock.c:635
 msgid "Tooltip Format"
-msgstr "Tooltip Format"
+msgstr ""
 
 #: ../plugins/dclock.c:636
 #, c-format
 msgid "Format codes: man 3 strftime; %n for line break"
-msgstr "Format codes: man 3 strftime; %n for line break"
+msgstr ""
 
 #: ../plugins/dclock.c:637
 msgid "Action when clicked (default: display calendar)"
-msgstr "Action when clicked (default: display calendar)"
+msgstr ""
 
 #. _("Bold font"), &dc->bold, CONF_TYPE_BOOL,
 #: ../plugins/dclock.c:639
 msgid "Tooltip only"
-msgstr "Tooltip only"
+msgstr ""
 
 #. _("Center text"), &dc->center_text, CONF_TYPE_BOOL,
 #: ../plugins/dclock.c:641
 msgid "Left align"
-msgstr "Left align"
+msgstr ""
 
 #: ../plugins/dclock.c:642
 msgid "Center text"
-msgstr "Centre text"
+msgstr ""
 
 #: ../plugins/dclock.c:643
 msgid "Right align"
-msgstr "Right align"
+msgstr ""
 
 #: ../plugins/dclock.c:656
 msgid "Display digital clock and tooltip"
-msgstr "Display digital clock and tooltip"
+msgstr ""
 
 #: ../plugins/menu.c:411
 msgid "Add to desktop"
-msgstr "Add to desktop"
+msgstr ""
 
 #: ../plugins/menu.c:418
 msgid "Properties"
-msgstr "Properties"
+msgstr ""
 
 #: ../plugins/menu.c:827
 msgid "Click here to open applications menu"
-msgstr "Click here to open applications menu"
+msgstr ""
 
 #: ../plugins/menu.c:1219 ../plugins/menu.c:1232
 msgid "Menu"
-msgstr "Menu"
+msgstr ""
 
 #: ../plugins/menu.c:1220 ../plugins/dirmenu.c:358
 msgid "Icon"
-msgstr "Icon"
+msgstr ""
 
 #: ../plugins/menu.c:1221
 msgid "Caption"
-msgstr "Caption"
+msgstr ""
 
 #: ../plugins/menu.c:1233
 msgid "Application Menu"
-msgstr "Application Menu"
+msgstr ""
 
 #: ../plugins/separator.c:68
 msgid "Separator"
-msgstr "Separator"
+msgstr ""
 
 #: ../plugins/separator.c:69
 msgid "Add a separator to the panel"
-msgstr "Add a separator to the panel"
+msgstr ""
 
 #: ../plugins/pager.c:92
 msgid "Sorry, there was no window manager configuration program found."
-msgstr "Sorry, there was no window manager configuration program found."
+msgstr ""
 
 #: ../plugins/pager.c:144 ../plugins/pager.c:160
 msgid "Desktop Pager"
-msgstr "Desktop Pager"
+msgstr ""
 
 #: ../plugins/pager.c:145 ../plugins/pager.c:161
 msgid "Simple pager plugin"
-msgstr "Simple pager plugin"
+msgstr ""
 
 #: ../plugins/space.c:86 ../plugins/space.c:95
 msgid "Spacer"
-msgstr "Spacer"
+msgstr ""
 
 #: ../plugins/space.c:96
 msgid "Allocate space"
-msgstr "Allocate space"
+msgstr ""
 
 #: ../plugins/tray.c:681
 msgid "System Tray"
-msgstr "System Tray"
+msgstr ""
 
 #: ../plugins/tray.c:682
 msgid "System tray"
-msgstr "System tray"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:401
 msgid "New session is required for this option to take effect"
@@ -788,54 +774,54 @@ msgstr ""
 #. dialog
 #: ../plugins/xkb/xkb-plugin.c:582
 msgid "Select Keyboard Model"
-msgstr "Select Keyboard Model"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:606 ../plugins/xkb/xkb-plugin.c:735
 #: ../plugins/xkb/xkb-plugin.c:913
 msgid "Description"
-msgstr "Description"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:611 ../plugins/xkb/xkb-plugin.c:742
 msgid "Id"
-msgstr "Id"
+msgstr ""
 
 #. dialog
 #: ../plugins/xkb/xkb-plugin.c:706
 msgid "Select Layout Change Type"
-msgstr "Select Layout Change Type"
+msgstr ""
 
 #. dialog
 #: ../plugins/xkb/xkb-plugin.c:879
 msgid "Add Keyboard Layout"
-msgstr "Add Keyboard Layout"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:903 ../plugins/xkb/xkb-plugin.c:1294
 msgid "Flag"
-msgstr "Flag"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:908 ../plugins/xkb/xkb-plugin.c:1298
 msgid "Layout"
-msgstr "Layout"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1204 ../plugins/xkb/xkb-plugin.c:1536
 msgid "Keyboard Layout Handler"
-msgstr "Keyboard Layout Handler"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1227
 msgid "Keyboard Model"
-msgstr "Keyboard Model"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1248
 msgid "Keyboard Layouts"
-msgstr "Keyboard Layouts"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1302
 msgid "Variant"
-msgstr "Variant"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1311
 msgid "Change Layout Option"
-msgstr "Change Layout Option"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1331
 msgid "Advanced setxkbmap Options"
@@ -851,111 +837,109 @@ msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1366
 msgid "Per Window Settings"
-msgstr "Per Window Settings"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1378
 msgid "_Remember layout for each window"
-msgstr "_Remember layout for each window"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1387
 msgid "Show Layout as"
-msgstr "Show Layout as"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1448
 msgid "Custom Image"
-msgstr "Custom Image"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1449
 msgid "Text"
-msgstr "Text"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1475
 msgid "Panel Icon Size"
-msgstr "Panel Icon Size"
+msgstr ""
 
 #: ../plugins/xkb/xkb-plugin.c:1537
 msgid "Handle keyboard layouts"
-msgstr "Handle keyboard layouts"
+msgstr ""
 
 #: ../plugins/wincmd.c:189
 msgid "Left click to iconify all windows.  Middle click to shade them."
-msgstr "Left click to iconify all windows.  Middle click to shade them."
+msgstr ""
 
 #: ../plugins/wincmd.c:223 ../plugins/wincmd.c:241
 msgid "Minimize All Windows"
-msgstr "Minimise All Windows"
+msgstr ""
 
 #: ../plugins/wincmd.c:225
 msgid "Alternately iconify/shade and raise"
-msgstr "Alternately iconify/shade and raise"
+msgstr ""
 
 #: ../plugins/wincmd.c:242
 msgid ""
 "Sends commands to all desktop windows.\n"
 "Supported commands are 1) iconify and 2) shade"
 msgstr ""
-"Sends commands to all desktop windows.\n"
-"Supported commands are 1) iconify and 2) shade"
 
 #: ../plugins/dirmenu.c:205
 msgid "Open in _Terminal"
-msgstr "Open in _Terminal"
+msgstr ""
 
 #: ../plugins/dirmenu.c:354 ../plugins/dirmenu.c:370
 msgid "Directory Menu"
-msgstr "Directory Menu"
+msgstr ""
 
 #: ../plugins/dirmenu.c:356
 msgid "Directory"
-msgstr "Directory"
+msgstr ""
 
 #: ../plugins/dirmenu.c:357
 msgid "Label"
-msgstr "Label"
+msgstr ""
 
 #: ../plugins/dirmenu.c:371
 msgid "Browse directory tree via menu (Author = PCMan)"
-msgstr "Browse directory tree via menu (Author: PCMan)"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:557 ../plugins/thermal/thermal.c:575
 msgid "Temperature Monitor"
-msgstr "Temperature Monitor"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:559
 msgid "Normal color"
-msgstr "Normal colour"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:560
 msgid "Warning1 color"
-msgstr "Warning1 colour"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:561
 msgid "Warning2 color"
-msgstr "Warning2 colour"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:562
 msgid "Automatic sensor location"
-msgstr "Automatic sensor location"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:563
 msgid "Sensor"
-msgstr "Sensor"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:564
 msgid "Automatic temperature levels"
-msgstr "Automatic temperature levels"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:565
 msgid "Warning1 temperature"
-msgstr "Warning1 Temperature"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:566
 msgid "Warning2 temperature"
-msgstr "Warning2 Temperature"
+msgstr ""
 
 #: ../plugins/thermal/thermal.c:576
 msgid "Display system temperature"
-msgstr "Display system temperature"
+msgstr ""
 
 #: ../plugins/cpufreq/cpufreq.c:325
 #, c-format
@@ -977,228 +961,224 @@ msgstr ""
 #: ../plugins/volume/volume.c:278 ../plugins/volumealsa/volumealsa.c:1350
 #: ../plugins/volumealsa/volumealsa.c:1961
 msgid "Volume control"
-msgstr "Volume control"
+msgstr ""
 
 #: ../plugins/volume/volume.c:286
 msgid "Volume Control"
-msgstr "Volume Control"
+msgstr ""
 
 #: ../plugins/volume/volume-impl.c:109
 msgid "Volume"
-msgstr "Volume"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:514
 msgid "Could not get BlueZ interface"
-msgstr "Could not get BlueZ interface"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:691
 msgid "Could not connect to PulseAudio"
-msgstr "Could not connect to PulseAudio"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:701
 msgid "Connecting Audio Device"
-msgstr "Connecting Audio Device"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:706
 #, c-format
 msgid "Connecting to Bluetooth audio device '%s'..."
-msgstr "Connecting to Bluetooth audio device '%s'..."
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:717
 #, c-format
 msgid "Failed to connect to device - %s. Try to connect again."
-msgstr "Failed to connect to device - %s. Try to connect again."
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:719
 #: ../plugins/bluetooth/bluetooth.c:1110 ../plugins/bluetooth/bluetooth.c:1205
 #: ../plugins/bluetooth/bluetooth.c:1437
 msgid "_OK"
-msgstr "_OK"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:1391
 #, c-format
 msgid "Unknown Volume Control %d"
-msgstr "Unknown Volume Control %d"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:1636
 msgid "Analog"
-msgstr "Analog"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:1645
 msgid "HDMI"
-msgstr "HDMI"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:1749
 msgid "USB Device Settings..."
-msgstr "External Device Settings..."
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:1756
 msgid "No audio devices found"
-msgstr "No audio devices found"
+msgstr ""
 
 #. Create a check button as the child of the vertical box.
 #: ../plugins/volumealsa/volumealsa.c:1902
 msgid "Mute"
-msgstr "Mute"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:2078
 msgid ""
 "Error, you need to install an application to configure the sound "
 "(pavucontrol, alsamixer ...)"
 msgstr ""
-"Error, you need to install an application to configure the sound "
-"(pavucontrol, alsamixer ...)"
 
 #: ../plugins/volumealsa/volumealsa.c:2139
 msgid "Volume Control (ALSA)"
-msgstr "Volume Control (ALSA)"
+msgstr ""
 
 #: ../plugins/volumealsa/volumealsa.c:2140
 msgid "Display and control volume for ALSA"
-msgstr "Display and control volume for ALSA"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:178
 msgid "<Hidden Access Point>"
-msgstr "<Hidden Access Point>"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:211
 msgid "Wireless Networks not found in range"
-msgstr "Wireless Networks not found in range"
+msgstr ""
 
 #. Repair
 #: ../plugins/netstat/netstat.c:245
 msgid "Repair"
-msgstr "Repair"
+msgstr ""
 
 #. interface down
 #: ../plugins/netstat/netstat.c:250
 msgid "Disable"
-msgstr "Disable"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:340
 msgid "Wireless Connection has no connectivity"
-msgstr "Wireless Connection has no connectivity"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:342
 msgid "Network cable is plugged out"
-msgstr "Network cable is not plugged in"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:344
 msgid "Connection has limited or no connectivity"
-msgstr "Connection has limited or no connectivity"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:348 ../plugins/netstat/netstat.c:359
 #: ../plugins/netstat/netstat.c:370 ../plugins/dhcpcd-gtk/prefs.c:605
 msgid "IP Address:"
-msgstr "IP Address:"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:349
 msgid "Remote IP:"
-msgstr "Remote IP:"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:350 ../plugins/netstat/netstat.c:361
 #: ../plugins/netstat/netstat.c:372
 msgid "Netmask:"
-msgstr "Netmask:"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:351 ../plugins/netstat/netstat.c:363
 #: ../plugins/netstat/netstat.c:374
 msgid "Activity"
-msgstr "Activity"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:351 ../plugins/netstat/netstat.c:363
 #: ../plugins/netstat/netstat.c:374
 msgid "Sent"
-msgstr "Sent"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:351 ../plugins/netstat/netstat.c:363
 #: ../plugins/netstat/netstat.c:374
 msgid "Received"
-msgstr "Received"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:352 ../plugins/netstat/netstat.c:364
 #: ../plugins/netstat/netstat.c:375
 msgid "bytes"
-msgstr "bytes"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:353 ../plugins/netstat/netstat.c:365
 #: ../plugins/netstat/netstat.c:376
 msgid "packets"
-msgstr "packets"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:356 ../plugins/netstatus/netstatus-iface.c:173
 msgid "Wireless"
-msgstr "Wireless"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:358
 msgid "Protocol:"
-msgstr "Protocol:"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:362 ../plugins/netstat/netstat.c:373
 msgid "HW Address:"
-msgstr "HW Address:"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:484
 msgid "Manage Networks"
-msgstr "Manage Networks"
+msgstr ""
 
 #: ../plugins/netstat/netstat.c:485
 msgid "Monitor and Manage networks"
-msgstr "Monitor and Manage networks"
+msgstr ""
 
 #. create dialog
 #: ../plugins/netstat/passwd_gui.c:87
 msgid "Setting Encryption Key"
-msgstr "Setting Encryption Key"
+msgstr ""
 
 #: ../plugins/netstat/passwd_gui.c:98
 msgid ""
 "This wireless network was encrypted.\n"
 "You must have the encryption key."
 msgstr ""
-"This wireless network is encrypted.\n"
-"You must have the encryption key."
 
 #: ../plugins/netstat/passwd_gui.c:103
 msgid "Encryption Key:"
-msgstr "Encryption Key:"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus.c:152 ../plugins/netstatus/netstatus.c:164
 msgid "Network Status Monitor"
-msgstr "Network Status Monitor"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus.c:154
 msgid "Interface to monitor"
-msgstr "Interface to monitor"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus.c:155
 msgid "Config tool"
-msgstr "Config tool"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus.c:165
 msgid "Monitor network status"
-msgstr "Monitor network status"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-dialog.c:52
 #: ../plugins/netstatus/netstatus-dialog.c:316
 msgid "Unknown"
-msgstr "Unknown"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-dialog.c:117
 msgid "Connection Properties"
-msgstr "Connection Properties"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-dialog.c:123
 #, c-format
 msgid "Connection Properties: %s"
-msgstr "Connection Properties: %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-dialog.c:136
 #, c-format
 msgid "%lu packet"
 msgid_plural "%lu packets"
-msgstr[0] "%lu packet"
-msgstr[1] "%lu packets"
+msgstr[0] ""
+msgstr[1] ""
 
 #: ../plugins/netstatus/netstatus-dialog.c:400
 #, c-format
@@ -1206,49 +1186,47 @@ msgid ""
 "There was an error displaying help:\n"
 "%s"
 msgstr ""
-"There was an error displaying help:\n"
-"%s"
 
 #: ../plugins/netstatus/netstatus-icon.c:379
 #, c-format
 msgid "Network Connection: %s"
-msgstr "Network Connection: %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:384
 msgid "Network Connection"
-msgstr "Network Connection"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:824
 msgid "Interface"
-msgstr "Interface"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:825
 msgid "The current interface the icon is monitoring."
-msgstr "The current interface the icon is monitoring."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:832
 msgid "Orientation"
-msgstr "Orientation"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:833
 msgid "The orientation of the tray."
-msgstr "The orientation of the tray."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:841
 msgid "Tooltips Enabled"
-msgstr "Tooltips Enabled"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:842
 msgid "Whether or not the icon's tooltips are enabled."
-msgstr "Whether or not the icon's tooltips are enabled."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:849
 msgid "Show Signal"
-msgstr "Show Signal"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:850
 msgid "Whether or not the signal strength should be displayed."
-msgstr "Whether or not the signal strength should be displayed."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-icon.c:959
 #, c-format
@@ -1257,201 +1235,198 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"Please contact your system administrator to resolve the following problem:\n"
-"\n"
-"%s"
 
 #: ../plugins/netstatus/netstatus-iface.c:148
 msgid "Name"
-msgstr "Name"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:149
 msgid "The interface name"
-msgstr "The interface name"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:156
 #: ../plugins/weather/weatherwidget.c:2084
 msgid "State"
-msgstr "State"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:157
 msgid "The interface state"
-msgstr "The interface state"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:165
 msgid "Stats"
-msgstr "Stats"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:166
 msgid "The interface packets/bytes statistics"
-msgstr "The interface packets/bytes statistics"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:174
 msgid "Whether the interface is a wireless interface"
-msgstr "Whether the interface is a wireless interface"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:181
 msgid "Signal"
-msgstr "Signal"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:182
 msgid "Wireless signal strength percentage"
-msgstr "Wireless signal strength percentage"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:191
 #: ../plugins/netstatus/netstatus-util.c:167
 msgid "Error"
-msgstr "Error"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:192
 msgid "The current error condition"
-msgstr "The current error condition"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:440
 #: ../plugins/netstatus/netstatus-iface.c:1205
 #, c-format
 msgid "Unable to open socket: %s"
-msgstr "Unable to open socket: %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:502
 #: ../plugins/netstatus/netstatus-iface.c:1231
 #, c-format
 msgid "SIOCGIFFLAGS error: %s"
-msgstr "SIOCGIFFLAGS error: %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:879
 msgid "AMPR NET/ROM"
-msgstr "AMPR NET/ROM"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:882
 msgid "Ethernet"
-msgstr "Ethernet"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:888
 msgid "AMPR AX.25"
-msgstr "AMPR AX.25"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:897
 #: ../plugins/netstatus/netstatus-iface.c:1017
 msgid "16/4 Mbps Token Ring"
-msgstr "16/4 Mbps Token Ring"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:900
 msgid "ARCnet"
-msgstr "ARCnet"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:906
 msgid "Frame Relay DLCI"
-msgstr "Frame Relay DLCI"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:912
 msgid "Metricom Starmode IP"
-msgstr "Metricom Starmode IP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:915
 msgid "Serial Line IP"
-msgstr "Serial Line IP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:918
 msgid "VJ Serial Line IP"
-msgstr "VJ Serial Line IP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:921
 msgid "6-bit Serial Line IP"
-msgstr "6-bit Serial Line IP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:924
 msgid "VJ 6-bit Serial Line IP"
-msgstr "VJ 6-bit Serial Line IP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:930
 msgid "Adaptive Serial Line IP"
-msgstr "Adaptive Serial Line IP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:933
 msgid "AMPR ROSE"
-msgstr "AMPR ROSE"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:936
 msgid "Generic X.25"
-msgstr "Generic X.25"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:939
 msgid "Point-to-Point Protocol"
-msgstr "Point-to-Point Protocol"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:945
 msgid "(Cisco)-HDLC"
-msgstr "(Cisco)-HDLC"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:948
 msgid "LAPB"
-msgstr "LAPB"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:957
 msgid "IPIP Tunnel"
-msgstr "IPIP Tunnel"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:963
 msgid "Frame Relay Access Device"
-msgstr "Frame Relay Access Device"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:969
 msgid "Local Loopback"
-msgstr "Local Loopback"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:975
 msgid "Fiber Distributed Data Interface"
-msgstr "Fibre Distributed Data Interface"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:981
 msgid "IPv6-in-IPv4"
-msgstr "IPv6-in-IPv4"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:993
 msgid "HIPPI"
-msgstr "HIPPI"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:996
 msgid "Ash"
-msgstr "Ash"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:999
 msgid "Econet"
-msgstr "Econet"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:1002
 msgid "IrLAP"
-msgstr "IrLAP"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:1163
 #, c-format
 msgid "SIOCGIFCONF error: %s"
-msgstr "SIOCGIFCONF error: %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-iface.c:1256
 #, c-format
 msgid "No network devices found"
-msgstr "No network devices found"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:180
 #, c-format
 msgid "Cannot open /proc/net/dev: %s"
-msgstr "Cannot open /proc/net/dev: %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:185
 msgid "Could not parse /proc/net/dev. No data."
-msgstr "Could not parse /proc/net/dev. No data."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:190
 msgid "Could not parse /proc/net/dev. Unknown format."
-msgstr "Could not parse /proc/net/dev. Unknown format."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:205
 #: ../plugins/netstatus/netstatus-sysdeps.c:332
 #, c-format
 msgid "Could not parse interface name from '%s'"
-msgstr "Could not parse interface name from '%s'"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:218
 #: ../plugins/netstatus/netstatus-sysdeps.c:647
@@ -1460,75 +1435,73 @@ msgid ""
 "Could not parse interface statistics from '%s'. prx_idx = %d; ptx_idx = %d; "
 "brx_idx = %d; btx_idx = %d;"
 msgstr ""
-"Could not parse interface statistics from '%s'. prx_idx = %d; ptx_idx = %d; "
-"brx_idx = %d; btx_idx = %d;"
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:312
 msgid "Could not parse /proc/net/wireless. No data."
-msgstr "Could not parse /proc/net/wireless. No data."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:316
 msgid "Could not parse /proc/net/wireless. Unknown format."
-msgstr "Could not parse /proc/net/wireless. Unknown format."
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:343
 #, c-format
 msgid "Could not parse wireless details from '%s'. link_idx = %d;"
-msgstr "Could not parse wireless details from '%s'. link_idx = %d;"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:416
 #, c-format
 msgid "Could not connect to interface, '%s'"
-msgstr "Could not connect to interface, '%s'"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:422
 #, c-format
 msgid "Could not send ioctl to interface, '%s'"
-msgstr "Could not send ioctl to interface, '%s'"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:600
 #, c-format
 msgid "Could not parse command line '%s': %s"
-msgstr "Could not parse command line '%s': %s"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-sysdeps.c:637
 msgid "Could not parse 'netstat' output. Unknown format"
-msgstr "Could not parse 'netstat' output. Unknown format"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-util.c:152
 msgid "Disconnected"
-msgstr "Disconnected"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-util.c:155
 msgid "Idle"
-msgstr "Idle"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-util.c:158
 msgid "Sending"
-msgstr "Sending"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-util.c:161
 msgid "Receiving"
-msgstr "Receiving"
+msgstr ""
 
 #: ../plugins/netstatus/netstatus-util.c:164
 msgid "Sending/Receiving"
-msgstr "Sending/Receiving"
+msgstr ""
 
 #: ../plugins/batt/batt.c:151
 #, c-format
 msgid "Battery: %d%% charged, %d:%02d until full"
-msgstr "Battery: %d%% charged, %d:%02d until full"
+msgstr ""
 
 #: ../plugins/batt/batt.c:162
 #, c-format
 msgid "Battery: %d%% charged, %d:%02d left"
-msgstr "Battery: %d%% charged, %d:%02d left"
+msgstr ""
 
 #: ../plugins/batt/batt.c:168
 #, c-format
 msgid "Battery: %d%% charged"
-msgstr "Battery: %d%% charged"
+msgstr ""
 
 #: ../plugins/batt/batt.c:178
 #, c-format
@@ -1595,47 +1568,47 @@ msgstr ""
 
 #: ../plugins/batt/batt.c:234
 msgid "No batteries found"
-msgstr "No battery found"
+msgstr ""
 
 #: ../plugins/batt/batt.c:640 ../plugins/batt/batt.c:661
 msgid "Battery Monitor"
-msgstr "Battery Monitor"
+msgstr ""
 
 #: ../plugins/batt/batt.c:642
 msgid "Hide if there is no battery"
-msgstr "Hide if there is no battery"
+msgstr ""
 
 #: ../plugins/batt/batt.c:643
 msgid "Alarm command"
-msgstr "Alarm command"
+msgstr ""
 
 #: ../plugins/batt/batt.c:644
 msgid "Alarm time (minutes left)"
-msgstr "Alarm time (minutes left)"
+msgstr ""
 
 #: ../plugins/batt/batt.c:645
 msgid "Background color"
-msgstr "Background colour"
+msgstr ""
 
 #: ../plugins/batt/batt.c:646
 msgid "Charging color 1"
-msgstr "Charging colour 1"
+msgstr ""
 
 #: ../plugins/batt/batt.c:647
 msgid "Charging color 2"
-msgstr "Charging colour 2"
+msgstr ""
 
 #: ../plugins/batt/batt.c:648
 msgid "Discharging color 1"
-msgstr "Discharging colour 1"
+msgstr ""
 
 #: ../plugins/batt/batt.c:649
 msgid "Discharging color 2"
-msgstr "Discharging colour 2"
+msgstr ""
 
 #: ../plugins/batt/batt.c:650
 msgid "Border width"
-msgstr "Border width"
+msgstr ""
 
 #: ../plugins/batt/batt.c:652
 msgid "Show Extended Information"
@@ -1643,110 +1616,110 @@ msgstr ""
 
 #: ../plugins/batt/batt.c:662
 msgid "Display battery status using ACPI"
-msgstr "Display battery status using ACPI"
+msgstr ""
 
 #: ../plugins/kbled/kbled.c:228 ../plugins/kbled/kbled.c:259
 msgid "Keyboard LED"
-msgstr "Keyboard LED"
+msgstr ""
 
 #: ../plugins/kbled/kbled.c:230
 msgid "Show CapsLock"
-msgstr "Show CapsLock"
+msgstr ""
 
 #: ../plugins/kbled/kbled.c:231
 msgid "Show NumLock"
-msgstr "Show NumLock"
+msgstr ""
 
 #: ../plugins/kbled/kbled.c:232
 msgid "Show ScrollLock"
-msgstr "Show ScrollLock"
+msgstr ""
 
 #: ../plugins/kbled/kbled.c:260
 msgid "Indicators for CapsLock, NumLock, and ScrollLock keys"
-msgstr "Indicators for CapsLock, NumLock, and ScrollLock keys"
+msgstr ""
 
 #. A label to allow for click through
 #: ../plugins/indicator/indicator.c:689
 msgid "No Indicators"
-msgstr "No Indicators"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:863 ../plugins/indicator/indicator.c:881
 msgid "Indicator applets"
-msgstr "Indicator applets"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:865
 msgid "Indicator Applications"
-msgstr "Indicator Applications"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:866
 msgid "Clock Indicator"
-msgstr "Clock Indicator"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:867
 msgid "Messaging Menu"
-msgstr "Messaging Menu"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:868
 msgid "Network Menu"
-msgstr "Network Menu"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:869
 msgid "Session Menu"
-msgstr "Session Menu"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:870
 msgid "Sound Menu"
-msgstr "Sound Menu"
+msgstr ""
 
 #: ../plugins/indicator/indicator.c:882
 msgid "Add indicator applets to the panel"
-msgstr "Add indicator applets to the panel"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:269
 #, c-format
 msgid "CPU usage: %.2f%%"
-msgstr "CPU usage: %.2f%%"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:365
 #, c-format
 msgid "RAM usage: %.1fMB (%.2f%%)"
-msgstr "RAM usage: %.1fMB (%.2f%%)"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:697 ../plugins/monitors/monitors.c:782
 msgid "Resource monitors"
-msgstr "Resource monitors"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:700
 msgid "CPU color"
-msgstr "CPU colour"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:701
 msgid "Display RAM usage"
-msgstr "Display RAM usage"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:702
 msgid "RAM color"
-msgstr "RAM colour"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:703
 msgid "Action when clicked (default: lxtask)"
-msgstr "Action when clicked (default: lxtask)"
+msgstr ""
 
 #: ../plugins/monitors/monitors.c:783
 msgid "Display monitors (CPU, RAM)"
-msgstr "Display monitors (CPU, RAM)"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:50
 msgid "[N/A]"
-msgstr "[N/A]"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:796
 msgid "Enter New Location"
-msgstr "Enter New Location"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:810
 msgid "_New Location:"
-msgstr "_New Location:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:821
 msgid ""
@@ -1756,378 +1729,373 @@ msgid ""
 "- postal code\n"
 "for which to retrieve the weather forecast."
 msgstr ""
-"Enter the:\n"
-"- city, or\n"
-"- city and state/country, or\n"
-"- postal code\n"
-"for which to retrieve the weather forecast."
 
 #: ../plugins/weather/weatherwidget.c:858
 #: ../plugins/weather/weatherwidget.c:991
 msgid "You must specify a location."
-msgstr "You must specify a location."
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:905
 #, c-format
 msgid "Location '%s' not found!"
-msgstr "Location '%s' not found!"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1063
 msgid "Preferences"
-msgstr "Preferences"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1069
 msgid "Refresh"
-msgstr "Refresh"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1075
 msgid "Quit"
-msgstr "Quit"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1236
 msgid "Weather Preferences"
-msgstr "Weather Preferences"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1249
 msgid "Current Location"
-msgstr "Current Location"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1253
 #: ../plugins/weather/weatherwidget.c:1528
 msgid "None configured"
-msgstr "None configured"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1255
 #: ../plugins/weather/weatherwidget.c:1525
 msgid "_Set"
-msgstr "_Set"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1276
 msgid "Display"
-msgstr "Display"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1280
 msgid "Name:"
-msgstr "Name:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1284
 msgid "Units:"
-msgstr "Units:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1288
 msgid "_Metric (°C)"
-msgstr "_Metric (°C)"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1290
 msgid "_English (°F)"
-msgstr "_English (°F)"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1325
 msgid "Forecast"
-msgstr "Forecast"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1329
 msgid "Updates:"
-msgstr "Updates:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1333
 msgid "Ma_nual"
-msgstr "Ma_nual"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1337
 msgid "_Automatic, every"
-msgstr "_Automatic, every"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1358
 msgid "minutes"
-msgstr "minutes"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1367
 msgid "Source:"
-msgstr "Source:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1481
 msgid "C_hange"
-msgstr "_hange"
+msgstr ""
 
 #. Both are available
 #: ../plugins/weather/weatherwidget.c:1569
 #, c-format
 msgid "Current Conditions for %s"
-msgstr "Current Conditions for %s"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1593
 msgid "Location:"
-msgstr "Location:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1616
 msgid "Last updated:"
-msgstr "Last updated:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1643
 msgid "Feels like:"
-msgstr "Feels like:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1668
 msgid "Humidity:"
-msgstr "Humidity:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1695
 msgid "Pressure:"
-msgstr "Pressure:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1722
 msgid "Visibility:"
-msgstr "Visibility:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1750
 msgid "Wind:"
-msgstr "Wind:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1773
 msgid "Sunrise:"
-msgstr "Sunrise:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1796
 msgid "Sunset:"
-msgstr "Sunset:"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1902
 #: ../plugins/weather/weatherwidget.c:2238
 #, c-format
 msgid "Forecast for %s unavailable."
-msgstr "Forecast for %s unavailable."
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1911
 #: ../plugins/weather/weatherwidget.c:2243
 #, c-format
 msgid "Location not set."
-msgstr "Location not set."
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:1928
 #, c-format
 msgid "Searching for '%s'..."
-msgstr "Searching for '%s'..."
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:2054
 #, c-format
 msgid "Location matches for '%s'"
-msgstr "Location matches for '%s'"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:2074
 msgid "City"
-msgstr "City"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:2094
 msgid "Country"
-msgstr "Country"
+msgstr ""
 
 #. make it nice and pretty
 #: ../plugins/weather/weatherwidget.c:2225
 msgid "Currently in "
-msgstr "Currently in"
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:2227
 msgid "Today: "
-msgstr "Today: "
+msgstr ""
 
 #: ../plugins/weather/weatherwidget.c:2228
 msgid "Tomorrow: "
-msgstr "Tomorrow: "
+msgstr ""
 
 #: ../plugins/weather/weather.c:310
 msgid "Weather Plugin"
-msgstr "Weather plugin"
+msgstr ""
 
 #: ../plugins/weather/weather.c:311
 msgid "Show weather conditions for a location."
-msgstr "Show weather conditions for a location."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:366
 msgid "Error creating new GIO Channel\n"
-msgstr "Error creating new GIO Channel\n"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:371
 msgid "Error creating watch\n"
-msgstr "Error creating watch\n"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:378
 msgid "g_try_malloc\n"
-msgstr "g_try_malloc\n"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:404
 #, c-format
 msgid "Status changed to %s"
-msgstr "Status changed to %s"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:407
 msgid "Connection to dhcpcd lost"
-msgstr "Connection to dhcpcd lost"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:407
 msgid "dhcpcd not running"
-msgstr "dhcpcd not running"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:429
 #, c-format
 msgid "Connected to %s-%s"
-msgstr "Connected to %s-%s"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:447
 msgid "dhcpcd connection lost"
-msgstr "dhcpcd connection lost"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:517
 msgid "Network event"
-msgstr "Network event"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:559
 #, c-format
 msgid "dhcpcd WPA connection lost: %s"
-msgstr "dhcpcd WPA connection lost: %s"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:621
 #, c-format
 msgid "%s: Received scan results"
-msgstr "%s: Received scan results"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:643
 msgid "New Access Point"
-msgstr "New Access Point"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:652
 msgid "New Access Points"
-msgstr "New Access Points"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:688
 #, c-format
 msgid "%s: WPA status %s"
-msgstr "%s: WPA status %s"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:800
 msgid "Connecting to dhcpcd ..."
-msgstr "Connecting to dhcpcd ..."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:806
 msgid "Connecting ..."
-msgstr "Connecting ..."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:847
 msgid "Wireless & Wired Network"
-msgstr "Wireless & Wired Network"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/main.c:848
 msgid "Control for dhcpcd network interface"
-msgstr "Control for dhcpcd network interface"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:75
 #, c-format
 msgid "Do you want to disconnect from the Wi-Fi network '%s'?"
-msgstr "Do you want to disconnect from the Wi-Fi network '%s'?"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:76
 msgid "Disconnect Wi-Fi Network"
-msgstr "Disconnect Wi-Fi Network"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:362
 msgid "No APs found - scanning..."
-msgstr "No APs found - scanning..."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:507 ../plugins/dhcpcd-gtk/menu.c:524
 msgid "No wireless interfaces found"
-msgstr "No wireless interfaces found"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:515
 msgid "Turn On Wi-Fi"
-msgstr "Turn On Wi-Fi"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:553
 msgid "Turn Off Wi-Fi"
-msgstr "Turn Off Wi-Fi"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:630
 msgid "_Preferences"
-msgstr "_Preferences"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:644
 msgid "_About"
-msgstr "_About"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/menu.c:652
 msgid "_Quit"
-msgstr "_Quit"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:48
 msgid "Error saving"
-msgstr "Error saving"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:48
 msgid "Error reading"
-msgstr "Error reading"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:52
 msgid "Config error"
-msgstr "Config error"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:532
 msgid "Network Preferences"
-msgstr "Network Preferences"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:544
 msgid "Configure:"
-msgstr "Configure:"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:590
 msgid "Automatically configure empty options"
-msgstr "Automatically configure empty options"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:613
 msgid "Router:"
-msgstr "Router:"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:621
 msgid "DNS Servers:"
-msgstr "DNS Servers:"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:628
 msgid "DNS Search:"
-msgstr "DNS Search:"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:634
 msgid "C_lear"
-msgstr "C_lear"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/prefs.c:649
 msgid "The dhcpcd configuration file is not writeable"
-msgstr "The dhcpcd configuration file is not writeable"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:76
 msgid "Failed to disconnect."
-msgstr "Failed to disconnect."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:79
 msgid "Failed to reconfigure."
-msgstr "Failed to reconfigure."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:82
 msgid "Failed to set key management."
-msgstr "Failed to set key management."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:85
 msgid "Failed to set password, probably too short."
-msgstr "Failed to set password, probably too short."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:88
 msgid "Failed to enable the network."
-msgstr "Failed to enable the network."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:91
 msgid "Failed to select the network."
-msgstr "Failed to select the network."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:94
 msgid "Failed to start association."
-msgstr "Failed to start association."
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:97
 msgid ""
@@ -2135,334 +2103,281 @@ msgid ""
 "\n"
 "You should add update_config=1 to /etc/wpa_supplicant.conf."
 msgstr ""
-"Failed to save wpa_supplicant configuration.\n"
-"\n"
-"You should add update_config=1 to /etc/wpa_supplicant.conf."
 
 #: ../plugins/dhcpcd-gtk/wpa.c:103
 msgid "Error enabling network"
-msgstr "Error enabling network"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:113 ../plugins/dhcpcd-gtk/wpa.c:118
 #: ../plugins/dhcpcd-gtk/wpa.c:123
 msgid "Error disconnecting network"
-msgstr "Error disconnecting network"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:113
 msgid "Could not find SSID to disconnect"
-msgstr "Could not find SSID to disconnect"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:118
 msgid "Could not remove network"
-msgstr "Could not remove network"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:123
 msgid "Could not write configuration"
-msgstr "Could not write configuration"
+msgstr ""
 
 #: ../plugins/dhcpcd-gtk/wpa.c:164
 msgid "Pre Shared Key:"
-msgstr "Pre Shared Key:"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:451
 #, c-format
 msgid "%s was removed without ejecting"
-msgstr "%s was removed without ejecting"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:452
 msgid "Please use menu to eject before removal"
-msgstr "Please use menu to eject before removal"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:489
 #, c-format
 msgid "%s has been ejected"
-msgstr "%s has been ejected"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:490
 msgid "It is now safe to remove the device"
-msgstr "It is now safe to remove the device"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:676
 msgid "No ejectable devices"
-msgstr "No ejectable devices"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:828
 msgid "Select a drive in menu to eject safely"
-msgstr "Select a drive in menu to eject safely"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:867
 msgid "Ejecter"
-msgstr "Ejecter"
+msgstr ""
 
 #: ../plugins/ejecter/ejecter.c:868
 msgid "Ejects mounted drives"
-msgstr "Ejects mounted drives"
+msgstr ""
 
 #. create the dialog, asking user to accept the pairing
 #: ../plugins/bluetooth/bluetooth.c:969
 #, c-format
 msgid "Do you accept pairing from device '%s'?"
-msgstr "Do you accept pairing from device '%s'?"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:970
 msgid "Pairing Request"
-msgstr "Pairing Request"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1095
 #, c-format
 msgid "Pairing Device '%s'"
-msgstr "Pairing Device '%s'"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1102
 msgid "Pairing request sent to device - waiting for response..."
-msgstr "Pairing request sent to device - waiting for response..."
+msgstr ""
 
 #. add the buttons
 #: ../plugins/bluetooth/bluetooth.c:1109 ../plugins/bluetooth/bluetooth.c:1204
 #: ../plugins/bluetooth/bluetooth.c:1358
 msgid "_Cancel"
-msgstr "_Cancel"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1123
 #, c-format
 msgid "Pairing failed - %s"
-msgstr "Pairing failed - %s"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1132
 msgid "Pairing successful - creating connection..."
-msgstr "Pairing successful - creating connection..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1139
 msgid "Connected successfully"
-msgstr "Connected successfully"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1146
 #, c-format
 msgid "Connection failed - %s. Try to connect manually."
-msgstr "Connection failed - %s. Try to connect manually."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1154
 #, c-format
 msgid "Please enter code '%s' on device '%s'"
-msgstr "Please enter code '%s' on device '%s'"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1162
 #, c-format
 msgid "Please confirm that device '%s' is showing the code '%s' to connect"
-msgstr "Please confirm that device '%s' is showing the code '%s' to connect"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1172
 #, c-format
 msgid "Please enter PIN code for device '%s'"
-msgstr "Please enter PIN code for device '%s'"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1185
 msgid "Waiting for response from device..."
-msgstr "Waiting for response from device..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1193
 msgid "Pairing Requested"
-msgstr "Pairing Requested"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1198
 #, c-format
 msgid "Device '%s' has requested a pairing. Do you accept the request?"
-msgstr "Device '%s' has requested a pairing. Do you accept the request?"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1214
 #, c-format
 msgid "Rejecting pairing..."
-msgstr "Rejecting pairing..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1221
 #, c-format
 msgid "Removal of pairing failed - %s. Remove the device manually."
-msgstr "Removal of pairing failed - %s. Remove the device manually."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1229
 msgid "Paired successfully. Use the audio menu to select as output device."
-msgstr "Paired successfully. Use the audio menu to select as output device."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1236
 msgid ""
 "Paired successfully, but this device has no services which can be used with "
 "Raspberry Pi."
 msgstr ""
-"Paired successfully, but this device has no services which can be used with "
-"Raspberry Pi."
 
 #. create the window
 #: ../plugins/bluetooth/bluetooth.c:1349
 msgid "Add New Device"
-msgstr "Add New Device"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1349 ../plugins/bluetooth/bluetooth.c:1403
 #, c-format
 msgid "Remove Device"
-msgstr "Remove Device"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1359
 msgid "_Pair"
-msgstr "_Pair"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1359
 msgid "_Remove"
-msgstr "_Remove"
+msgstr ""
 
 #. add a label
 #: ../plugins/bluetooth/bluetooth.c:1365
 msgid "Searching for Bluetooth devices..."
-msgstr "Searching for Bluetooth devices..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1365
 msgid "Paired Bluetooth devices"
-msgstr "Paired Bluetooth devices"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1404
 #, c-format
 msgid "Removing paired device '%s'..."
-msgstr "Removing paired device '%s'..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1404
 #, c-format
 msgid "Removal failed - %s"
-msgstr "Removal failed - %s"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1408
 #, c-format
 msgid "Connect Device"
-msgstr "Connect Device"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1409
 #, c-format
 msgid "Connecting to device '%s'..."
-msgstr "Connecting to device '%s'..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1409
 #, c-format
 msgid "Connection failed - %s"
-msgstr "Connection failed - %s"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1413
 #, c-format
 msgid "Disconnect Device"
-msgstr "Disconnect Device"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1414
 #, c-format
 msgid "Disconnecting from device '%s'..."
-msgstr "Disconnecting from device '%s'..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1414
 #, c-format
 msgid "Disconnection failed - %s"
-msgstr "Disconnection failed - %s"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1497
 msgid "Use the audio menu to connect to this device"
-msgstr "Use the audio menu to connect to this device"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1499
 msgid "No usable services on this device"
-msgstr "No usable services on this device"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1566
 msgid "Disconnect..."
-msgstr "Disconnect..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1572
 msgid "Connect..."
-msgstr "Connect..."
+msgstr ""
 
 #. warn if no BT hardware detected
 #: ../plugins/bluetooth/bluetooth.c:1769
 msgid "No Bluetooth adapter found"
-msgstr "No Bluetooth adapter found"
+msgstr ""
 
 #. add enable bt option
 #: ../plugins/bluetooth/bluetooth.c:1776
 msgid "Turn On Bluetooth"
-msgstr "Turn On Bluetooth"
+msgstr ""
 
 #. add disable bt option
 #: ../plugins/bluetooth/bluetooth.c:1785
 msgid "Turn Off Bluetooth"
-msgstr "Turn Off Bluetooth"
+msgstr ""
 
 #. discoverable toggle
 #: ../plugins/bluetooth/bluetooth.c:1793
 msgid "Stop Discoverable"
-msgstr "Stop Discoverable"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1794
 msgid "Make Discoverable"
-msgstr "Make Discoverable"
+msgstr ""
 
 #. add and remove dialogs
 #: ../plugins/bluetooth/bluetooth.c:1801
 msgid "Add Device..."
-msgstr "Add Device..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1804
 msgid "Remove Device..."
-msgstr "Remove Device..."
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1884
 msgid "Manage Bluetooth devices"
-msgstr "Manage Bluetooth devices"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1919
 msgid "Bluetooth"
-msgstr "Bluetooth"
+msgstr ""
 
 #: ../plugins/bluetooth/bluetooth.c:1920
 msgid "Manages Bluetooth devices"
-msgstr "Manages Bluetooth devices"
-
-#~ msgid "Output"
-#~ msgstr "Output"
-
-#~ msgid "Auto"
-#~ msgstr "Auto"
-
-#~ msgid " --log <number> -- set log level 0-5. 0 - none 5 - chatty\n"
-#~ msgstr " --log <number> -- set log level 0-5. 0 - none 5 - chatty\n"
-
-#~ msgid "Display Image and Tooltip"
-#~ msgstr "Display Image and Tooltip"
-
-#~ msgid "Normal"
-#~ msgstr "Normal"
-
-#~ msgid "Warning1"
-#~ msgstr "Warning1"
-
-#~ msgid "Warning2"
-#~ msgstr "Warning2"
-
-#~ msgid "Failed to launch time configuration tool: %s"
-#~ msgstr "Failed to launch time configuration tool: %s"
-
-#~ msgid "Model"
-#~ msgstr "Model"
-
-#~ msgid "WNCKPager"
-#~ msgstr "WNCKPager"
-
-#~ msgid "<b>Icon</b>"
-#~ msgstr "<b>Icon</b>"
-
-#~ msgid "Configure Keyboard Layout Switcher"
-#~ msgstr "Configure Keyboard Layout Switcher"
-
-#~ msgid "image"
-#~ msgstr "image"
-
-#~ msgid "text"
-#~ msgstr "text"
-
-#~ msgid "Per application settings"
-#~ msgstr "Per application settings"
-
-#~ msgid "Default layout:"
-#~ msgstr "Default layout:"
+msgstr ""

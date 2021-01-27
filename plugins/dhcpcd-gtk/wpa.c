@@ -1,6 +1,6 @@
 /*
  * dhcpcd-gtk
- * Copyright 2009-2014 Roy Marples <roy@marples.name>
+ * Copyright 2009-2015 Roy Marples <roy@marples.name>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,7 +76,7 @@ wpa_conf(int werr, DHCPCDUIPlugin *dhcp)
         errt = _("Failed to disconnect.");
         break;
     case DHCPCD_WPA_ERR_RECONF:
-        errt = _("Faile to reconfigure.");
+        errt = _("Failed to reconfigure.");
         break;
     case DHCPCD_WPA_ERR_SET:
         errt = _("Failed to set key management.");
@@ -102,6 +102,28 @@ wpa_conf(int werr, DHCPCDUIPlugin *dhcp)
     }
     wpa_show_err(_("Error enabling network"), errt, dhcp);
     return false;
+}
+
+bool wpa_disconnect (DHCPCD_WPA *wpa, DHCPCD_WI_SCAN *scan)
+{
+	DHCPCDUIPlugin *dhcp = (DHCPCDUIPlugin *) dhcpcd_wpa_get_context (wpa);
+    int id = dhcpcd_wpa_network_find_new (wpa, scan->ssid);
+    if (id == -1)
+    {
+        wpa_show_err (_("Error disconnecting network"), _("Could not find SSID to disconnect"), dhcp);
+        return false;
+    }
+	if (!dhcpcd_wpa_network_remove (wpa, id))
+    {
+        wpa_show_err (_("Error disconnecting network"), _("Could not remove network"), dhcp);
+        return false;
+    }
+	if (!dhcpcd_wpa_config_write(wpa))
+    {
+        wpa_show_err (_("Error disconnecting network"), _("Could not write configuration"), dhcp);
+        return false;
+    }
+	return true;
 }
 
 bool
